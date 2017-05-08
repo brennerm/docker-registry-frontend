@@ -1,6 +1,10 @@
 <ol class="breadcrumb">
     <li><a href="/">Registries</a></li>
-    {% if repo is defined %}
+    {% if tag is defined %}
+    <li><a href="/registry/{{registry.name}}">{{registry.name}}</a></li>
+    <li><a href="/registry/{{registry.name}}/repo/{{repo}}">{{repo}}</a></li>
+    <li class="active"><a href="javascript:location.reload();">{{tag}}</a></li>
+    {% elif repo is defined %}
     <li><a href="/registry/{{registry.name}}">{{registry.name}}</a></li>
     <li class="active"><a href="javascript:location.reload();">{{repo}}</a></li>
     {% elif registry is defined %}

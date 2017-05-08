@@ -9,25 +9,16 @@
                 <th>Name</th>
                 <th>Number of Layers</th>
                 <th>Size</th>
-                <th></th>
+                <th>Created</th>
             </tr>
         </thead>
         <tbody>
             {% for tag in registry.get_tags(repo) %}
             <tr>
-                <td>{{ tag }}</td>
+                <td><a href="/registry/{{registry.name}}/repo/{{repo}}/tag/{{tag}}">{{tag}}</a></td>
                 <td>{{ registry.get_number_of_layers(repo, tag) }}</td>
                 <td>{{ '%0.2f' % (registry.get_size_of_layers(repo, tag) / 1024 ** 2) }} MB</td>
-                <td>
-                    <div class="input-group">
-                        <input type="text" id="copy{{ loop.index }}" class="form-control" value="docker pull {{registry.url.replace('http://', '').replace('https://', '')}}/{{repo}}:{{tag}}">
-                        <span class="input-group-btn">
-                            <button class="btn" data-clipboard-target="#copy{{ loop.index }}">
-                                <span class="glyphicon glyphicon-copy" aria-hidden="true"></span>
-                            </button>
-                        </span>
-                    </div>
-                </td>
+                <td>{{ registry.get_created_date(repo, tag) }}</td>
             </tr>
             {% endfor %}
         </tbody>

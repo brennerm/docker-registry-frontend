@@ -1,8 +1,7 @@
+import datetime
 import json
 import urllib.error
 import urllib.request
-
-import datetime
 
 from docker_registry_frontend.manifest import makeManifest
 
@@ -110,3 +109,15 @@ class DockerV2Registry:
             self.get_manifest(repo, tag).get_created_date().split('.')[0],  # ignore microseconds
             '%Y-%m-%dT%H:%M:%S'
         )
+
+    def get_entrypoint(self, repo, tag):
+        return self.get_manifest(repo, tag).get_entrypoint()
+
+    def get_docker_version(self, repo, tag):
+        return self.get_manifest(repo, tag).get_docker_version()
+
+    def get_exposed_ports(self, repo, tag):
+        return self.get_manifest(repo, tag).get_exposed_ports()
+
+    def get_volumes(self, repo, tag):
+        return self.get_manifest(repo, tag).get_volumes()

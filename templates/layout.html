@@ -13,10 +13,12 @@
     <body>
         <div id="header">{% block header %}{% endblock %}</div>
         <div id="content" class="container-fluid">{% block content %}{% endblock %}</div>
-        <footer class="footer text-center">
+        <footer id="footer" class="footer text-center">
             <div class="container">
                 {% block footer %}
                 Built with <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> by <a href="https://github.com/brennerm">brennerm</a>
+                /
+                <a href="https://github.com/brennerm/docker-registry-frontend">Fork me!</a>
                 {% endblock %}
             </div>
         </footer>
