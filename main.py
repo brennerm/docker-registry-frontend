@@ -78,9 +78,19 @@ def repo_overview(registry):
 
 @app.route('/registry/<registry>/repo/<repo>')
 def tag_overview(registry, repo):
+    registry_web.get_registry_by_name(registry).get_created_date('registry', '2')
     return flask.render_template('tag_overview.html',
                                  registry=registry_web.get_registry_by_name(registry),
                                  repo=repo)
+
+
+@app.route('/registry/<registry>/repo/<repo>/tag/<tag>')
+def tag_detail(registry, repo, tag):
+    return flask.render_template('tag_detail.html',
+                                 registry=registry_web.get_registry_by_name(registry),
+                                 repo=repo,
+                                 tag=tag
+                                 )
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
