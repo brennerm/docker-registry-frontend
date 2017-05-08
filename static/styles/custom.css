@@ -24,4 +24,5 @@ html, html body {
     height: calc(100% - 65px);
     position: absolute;
     top: 35px;
+    width: 100%;
 }
