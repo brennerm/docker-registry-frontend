@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}Repositories{% endblock %}
+{% block header %}{% include 'breadcrumbs.html' %}{% endblock %}
+{% block content %}
+    {% if registry.is_online() %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Number of Tags</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for repo in registry.get_repos() %}
+            <tr>
+                <td><a href="{{url_for('tag_overview', registry=registry.name, repo=repo)}}">{{repo}}</a></td>
+                <td>{{ registry.get_number_of_tags(repo) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    {% include 'offline.html' %}
+    {% endif %}
+{% endblock %}

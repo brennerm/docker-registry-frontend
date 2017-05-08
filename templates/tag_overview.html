@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}Tags{% endblock %}
+{% block header %}{% include 'breadcrumbs.html' %}{% endblock %}
+{% block content %}
+    {% if registry.is_online() %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Number of Layers</th>
+                <th>Size</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tag in registry.get_tags(repo) %}
+            <tr>
+                <td>{{ tag }}</td>
+                <td>{{ registry.get_number_of_layers(repo, tag) }}</td>
+                <td>{{ '%0.2f' % (registry.get_size_of_layers(repo, tag) / 1024 ** 2) }} MB</td>
+                <td>
+                    <div class="input-group">
+                        <input type="text" id="copy{{ loop.index }}" class="form-control" value="docker pull {{registry.url.replace('http://', '').replace('https://', '')}}/{{repo}}:{{tag}}">
+                        <span class="input-group-btn">
+                            <button class="btn" data-clipboard-target="#copy{{ loop.index }}">
+                                <span class="glyphicon glyphicon-copy" aria-hidden="true"></span>
+                            </button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    {% include 'offline.html' %}
+    {% endif %}
+{% endblock %}

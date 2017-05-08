@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+    <head>
+        {% block head %}
+        <title>{% block title %}{% endblock %} - Docker Registry Web</title>
+        {% endblock %}
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='styles/bootstrap-3.3.7-dist/css/bootstrap.min.css') }}">
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='styles/custom.css') }}">
+        <script src= "{{ url_for('static', filename='js/jquery/jquery-3.2.1.min.js') }}"></script>
+        <script src= "{{ url_for('static', filename='js/clipboard.js-master/dist/clipboard.min.js') }}"></script>
+        <script src= "{{ url_for('static', filename='js/bootstrap-validator-0.11.9/dist/validator.min.js') }}"></script>
+    </head>
+    <body>
+        <div id="header">{% block header %}{% endblock %}</div>
+        <div id="content" class="container-fluid">{% block content %}{% endblock %}</div>
+        <footer class="footer text-center">
+            <div class="container">
+                {% block footer %}
+                Built with <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> by <a href="https://github.com/brennerm">brennerm</a>
+                {% endblock %}
+            </div>
+        </footer>
+    </body>
+    <script>
+    clipboard = new Clipboard('.btn');
+    </script>
+</html>

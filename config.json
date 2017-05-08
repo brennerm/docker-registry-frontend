@@ -1,0 +1,6 @@
+{
+  "storage": {
+    "driver": "sqlite",
+    "file_path": ":memory:"
+  }
+}

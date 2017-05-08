@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block title %}Add Registry{% endblock %}
+{% block header %}{% include 'breadcrumbs.html' %}{% endblock %}
+{% block content %}
+<form data-toggle="validator" role="form" action="/add_registry" method="post">
+    <div class="form-group">
+        <label>Name</label>
+        <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-tag"></span>
+            <input type="text" name="name" class="form-control" placeholder="Name" required>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>URL</label>
+        <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-link"></span>
+            <input type="text" name="url" class="form-control" placeholder="URL" required data-remote="/test_connection">
+        </div>
+    </div>
+    <div class="form-group">
+        <label>User</label>
+        <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-user"></span>
+            <input type="text" name="user" class="form-control" placeholder="User">
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Password</label>
+        <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-lock"></span>
+            <input type="password" name="password" class="form-control" placeholder="Password">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+{% endblock %}
