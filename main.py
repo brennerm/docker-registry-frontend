@@ -96,6 +96,8 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument('config')
     argparser.add_argument('-d', '--debug', help='Run application in debug mode', action='store_true', default=False)
+    argparser.add_argument('-i', '--ip-address', help='IP address to bind application to', default='0.0.0.0')
+    argparser.add_argument('-p', '--port', help='Port to bind application to', default=8080)
     arguments = argparser.parse_args()
 
     with open(arguments.config, 'r') as config_file:
@@ -106,4 +108,8 @@ if __name__ == "__main__":
     )
 
     registry_web = DockerRegistryWeb(registry_web_storage)
-    app.run(debug=arguments.debug)
+    app.run(
+        debug=arguments.debug,
+        host=arguments.ip_address,
+        port=arguments.port
+    )
