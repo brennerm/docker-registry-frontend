@@ -21,7 +21,7 @@
         <tbody>
             {% for registry in registries %}
             <tr>
-                <td><a href="{{ url_for('repo_overview', registry=registry.name) }}">{{registry.name}}</a></td>
+                <td><a href="{{ url_for('repo_overview', registry_name=registry.name) }}">{{registry.name}}</a></td>
                 <td>{{ registry.url}}</td>
                 {% if registry.is_online() %}
                 <td>{{ registry.get_number_of_repos() }}</td>

@@ -74,24 +74,38 @@ def remove_registry():
     return flask.redirect(flask.url_for('registry_overview'))
 
 
-@app.route('/registry/<registry>')
-def repo_overview(registry):
+@app.route('/registry/<registry_name>')
+def repo_overview(registry_name):
+    try:
+        registry = registry_web.get_registry_by_name(registry_name)
+    except KeyError:
+        flask.abort(404)
+
     return flask.render_template('repo_overview.html',
-                                 registry=registry_web.get_registry_by_name(registry))
+                                 registry=registry)
 
 
-@app.route('/registry/<registry>/repo/<repo>')
-def tag_overview(registry, repo):
-    registry_web.get_registry_by_name(registry).get_created_date('registry', '2')
+@app.route('/registry/<registry_name>/repo/<repo>')
+def tag_overview(registry_name, repo):
+    try:
+        registry = registry_web.get_registry_by_name(registry_name)
+    except KeyError:
+        flask.abort(404)
+
     return flask.render_template('tag_overview.html',
-                                 registry=registry_web.get_registry_by_name(registry),
+                                 registry=registry,
                                  repo=repo)
 
 
-@app.route('/registry/<registry>/repo/<repo>/tag/<tag>')
-def tag_detail(registry, repo, tag):
+@app.route('/registry/<registry_name>/repo/<repo>/tag/<tag>')
+def tag_detail(registry_name, repo, tag):
+    try:
+        registry = registry_web.get_registry_by_name(registry_name)
+    except KeyError:
+        flask.abort(404)
+
     return flask.render_template('tag_detail.html',
-                                 registry=registry_web.get_registry_by_name(registry),
+                                 registry=registry,
                                  repo=repo,
                                  tag=tag
                                  )
