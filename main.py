@@ -40,9 +40,13 @@ def registry_overview():
 @app.route('/test_connection')
 def test_registry_connection():
     url = flask.request.args.get('url')
-    if DockerV2Registry(None, url).is_online():
-        return '', 200
-    else:
+
+    try:
+        if url and DockerV2Registry(None, url).is_online():
+            return '', 200
+        else:
+            return '', 400
+    except ValueError:
         return '', 400
 
 
