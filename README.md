@@ -53,3 +53,16 @@ The following options are currently implemented:
 ```
 
 If you'd like to use another storage feel free to create an issue or open a pull request.
+
+## Images
+### Registry Overview
+![Registry Overview](/img/registry_overview.png)
+
+### Repository Overview
+![Repository Overview](/img/repo_overview.png)
+
+### Tag Overview
+![Tag Overview](/img/tag_overview.png)
+
+### Tag Detail
+![Tag Detail](/img/tag_detail.png)
