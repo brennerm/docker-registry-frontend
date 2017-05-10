@@ -7,15 +7,19 @@
         <label>Name</label>
         <div class="input-group">
             <span class="input-group-addon glyphicon glyphicon-tag"></span>
-            <input type="text" name="name" class="form-control" placeholder="Name" required>
+            <input type="text" id="name" name="name" class="form-control" placeholder="Name"
+                   required data-required-error="Name for registry is required">
         </div>
+        <div class="help-block with-errors"></div>
     </div>
     <div class="form-group">
         <label>URL</label>
         <div class="input-group">
             <span class="input-group-addon glyphicon glyphicon-link"></span>
-            <input type="text" name="url" class="form-control" placeholder="URL" required data-remote="/test_connection">
+            <input type="text" id="url" name="url" class="form-control" placeholder="URL"
+                   required data-required-error="URL of registry is required">
         </div>
+        <div class="help-block with-errors"></div>
     </div>
     <!--<div class="form-group">-->
         <!--<label>User</label>-->
@@ -32,5 +36,8 @@
         <!--</div>-->
     <!--</div>-->
     <button type="submit" class="btn btn-default">Submit</button>
+    <button type="button" id="connection_test" class="btn btn-default">Test Connection</button>
 </form>
+
+<script src= "{{ url_for('static', filename='js/connection_test.js') }}"></script>
 {% endblock %}
