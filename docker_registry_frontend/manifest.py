@@ -40,7 +40,6 @@ class DockerRegistrySchema1Manifest(DockerRegistryManifest):
     def __get_first_value(self, *keys):
         for entry in self.__get_sorted_history():
             try:
-                print(entry)
                 return functools.reduce(operator.getitem, keys, entry)
             except KeyError:
                 pass
