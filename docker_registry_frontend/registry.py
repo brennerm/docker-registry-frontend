@@ -20,6 +20,9 @@ class DockerV2Registry:
         self.__user = user
         self.__password = password
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
     @property
     def name(self):
         return self.__name

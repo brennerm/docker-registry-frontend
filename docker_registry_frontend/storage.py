@@ -40,13 +40,13 @@ class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
 
         return max(
             [int(identifier) for identifier in existing_ids],
-            default=-1
+            default=0
         ) + 1
 
     def add_registry(self, name, url, user=None, password=None):
         registries = self.__read()
 
-        registries[self.__get_new_id()] = {
+        registries[str(self.__get_new_id())] = {
             'name': name,
             'url': url,
             'user': user,
@@ -102,7 +102,7 @@ class DockerRegistrySQLiteStorage(DockerRegistryWebStorage):
 
         for row in self.__execute('SELECT * FROM registries;'):
             identifier, name, url, user, password = row
-            registries[identifier] = DockerV2Registry(
+            registries[str(identifier)] = DockerV2Registry(
                 name,
                 url,
                 user,
