@@ -38,15 +38,15 @@ class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
     def __get_new_id(self):
         existing_ids = self.__read().keys()
 
-        return max(
+        return str(max(
             [int(identifier) for identifier in existing_ids],
             default=0
-        ) + 1
+        ) + 1)
 
     def add_registry(self, name, url, user=None, password=None):
         registries = self.__read()
 
-        registries[str(self.__get_new_id())] = {
+        registries[self.__get_new_id()] = {
             'name': name,
             'url': url,
             'user': user,
