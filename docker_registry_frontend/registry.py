@@ -1,5 +1,6 @@
 import datetime
 import json
+import socket
 import urllib.error
 import urllib.request
 
@@ -36,7 +37,7 @@ class DockerV2Registry:
     @staticmethod
     def request(*args, **kwargs):
         request = urllib.request.Request(*args, **kwargs)
-        return urllib.request.urlopen(request)
+        return urllib.request.urlopen(request, timeout=3)
 
     def get_manifest(self, repo, tag):
         return makeManifest(
@@ -54,7 +55,7 @@ class DockerV2Registry:
             resp = DockerV2Registry.request(DockerV2Registry.API_BASE.format(
                     url=self.__url
             ))
-        except urllib.error.URLError:
+        except (urllib.error.URLError, socket.timeout):
             return False
 
         return True if resp.getcode() == 200 else False
