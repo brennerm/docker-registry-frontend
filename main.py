@@ -16,7 +16,7 @@ class DockerRegistryWeb:
         return self.__storage.get_registries()
 
     def get_registry_by_name(self, name):
-        for registry in self.registries:
+        for registry in self.registries.values():
             if registry.name == name:
                 return registry
 
@@ -68,7 +68,7 @@ def add_registry():
 @app.route('/remove_registry', methods=['POST'])
 def remove_registry():
     registry_web.remove_registry(
-        flask.request.args.get('name')
+        flask.request.args.get('id')
     )
 
     return flask.redirect(flask.url_for('registry_overview'))

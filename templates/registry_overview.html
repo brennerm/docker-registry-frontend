@@ -19,7 +19,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for registry in registries %}
+            {% for identifier, registry in registries.items() %}
             <tr>
                 <td><a href="{{ url_for('repo_overview', registry_name=registry.name) }}">{{registry.name}}</a></td>
                 <td>{{ registry.url}}</td>
@@ -36,7 +36,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    <form action="/remove_registry?name={{registry.name}}" method="post">
+                    <form action="/remove_registry?id={{identifier}}" method="post">
                         <button type="submit" class="btn btn-danger btn-xs">
                             <span class="glyphicon glyphicon-trash"></span>
                         </button>

@@ -13,7 +13,7 @@ class DockerRegistryWebStorage(abc.ABC):
     def add_registry(self, name, url, user=None, password=None):
         raise NotImplementedError
 
-    def remove_registry(self, name):
+    def remove_registry(self, identifier):
         raise NotImplementedError
 
 
@@ -35,10 +35,18 @@ class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
         with open(self.__json_file, 'w') as json_f:
             json.dump(content, json_f)
 
+    def __get_new_id(self):
+        existing_ids = self.__read().keys()
+
+        return max(
+            [int(identifier) for identifier in existing_ids]
+        ) + 1
+
     def add_registry(self, name, url, user=None, password=None):
         registries = self.__read()
 
-        registries[name] = {
+        registries[self.__get_new_id()] = {
+            'name': name,
             'url': url,
             'user': user,
             'password': password
@@ -46,23 +54,21 @@ class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
 
         self.__write(registries)
 
-    def remove_registry(self, name):
+    def remove_registry(self, identifier):
         registries = self.__read()
-        if name in registries:
-            registries.pop(name)
+        if identifier in registries:
+            registries.pop(identifier)
 
         self.__write(registries)
 
     def get_registries(self):
-        registries = []
-        for name, config in self.__read().items():
-            registries.append(
-                DockerV2Registry(
-                    name,
-                    config['url'],
-                    config.get('user', None),
-                    config.get('password', None)
-                )
+        registries = {}
+        for identifier, config in self.__read().items():
+            registries[identifier] = DockerV2Registry(
+                config['name'],
+                config['url'],
+                config.get('user', None),
+                config.get('password', None)
             )
 
         return registries
@@ -87,21 +93,19 @@ class DockerRegistrySQLiteStorage(DockerRegistryWebStorage):
         self.__execute('INSERT INTO registries (name, url, user, password) VALUES (:name, :url, :user, :password);',
                        {'name': name, 'url': url, 'user': user, 'password': password})
 
-    def remove_registry(self, name):
-        self.__execute('DELETE FROM registries WHERE name = :name;', {'name': name})
+    def remove_registry(self, identifier):
+        self.__execute('DELETE FROM registries WHERE id = :id;', {'id': identifier})
 
     def get_registries(self):
-        registries = []
+        registries = {}
 
         for row in self.__execute('SELECT * FROM registries;'):
-            _, name, url, user, password = row
-            registries.append(
-                DockerV2Registry(
-                    name,
-                    url,
-                    user,
-                    password
-                )
+            identifier, name, url, user, password = row
+            registries[identifier] = DockerV2Registry(
+                name,
+                url,
+                user,
+                password
             )
 
         return registries
