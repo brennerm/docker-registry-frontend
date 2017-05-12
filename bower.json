@@ -19,6 +19,8 @@
     "jquery": "^3.2.1",
     "bootstrap": "^3.3.7",
     "bootstrap-validator": "^0.11.9",
-    "clipboard": "^1.6.1"
+    "clipboard": "^1.6.1",
+    "datatables.net": "^1.10.15",
+    "datatables.net-bs": "^2.1.1"
   }
 }

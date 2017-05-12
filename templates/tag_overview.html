@@ -2,28 +2,30 @@
 {% block title %}Tags{% endblock %}
 {% block header %}{% include 'breadcrumbs.html' %}{% endblock %}
 {% block content %}
-    {% if registry.is_online() %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Number of Layers</th>
-                <th>Size</th>
-                <th>Created</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for tag in registry.get_tags(repo) %}
-            <tr>
-                <td><a href="/registry/{{registry.name}}/repo/{{repo}}/tag/{{tag}}">{{tag}}</a></td>
-                <td>{{ registry.get_number_of_layers(repo, tag) }}</td>
-                <td>{{ registry.get_size_of_layers(repo, tag) | to_mb }} MB</td>
-                <td>{{ registry.get_created_date(repo, tag) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    {% include 'offline.html' %}
-    {% endif %}
+{% if registry.is_online() %}
+<table id="tag_table" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Number of Layers</th>
+            <th>Size</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tag in registry.get_tags(repo) %}
+        <tr>
+            <td><a href="/registry/{{registry.name}}/repo/{{repo}}/tag/{{tag}}">{{tag}}</a></td>
+            <td>{{ registry.get_number_of_layers(repo, tag) }}</td>
+            <td>{{ registry.get_size_of_layers(repo, tag) | to_mb }} MB</td>
+            <td>{{ registry.get_created_date(repo, tag) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% include 'table_include.html' %}
+{% else %}
+{% include 'offline.html' %}
+{% endif %}
 {% endblock %}
