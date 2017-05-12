@@ -32,20 +32,30 @@ $ python3 main.py config.json
 ```
 
 ## Configuration
+### Caching
+It's possible to enable a caching functionality to keep the frontend fast even when viewing thousands of repos and tags.
+By default it's disabled as there is no need for small registries. To enable it set a value for the cache timeout in seconds.
+```json
+{
+  "cache_timeout": 3600
+}
+```
 ### Supported storage drivers
 The frontend supports various kinds of storages to persists the configuration.
 The following options are currently implemented:
 - SQLite
-```
+```json
 {
   "storage": {
     "driver": "sqlite",
-    "file_path": "db.sqlite" # Use ":memory:" to use an in-memory database.
+    "file_path": "db.sqlite"
   }
 }
 ```
+ Set the "file_path" value to ":memory:" to use an in-memory database.
+
 - JSON File
-```
+```json
 {
   "storage": {
     "driver": "json",
