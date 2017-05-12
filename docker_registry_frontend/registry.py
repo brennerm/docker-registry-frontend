@@ -5,6 +5,7 @@ import urllib.error
 import urllib.request
 
 from docker_registry_frontend.manifest import makeManifest
+from docker_registry_frontend.cache import cache_with_timeout
 
 
 class DockerV2Registry:
@@ -19,6 +20,12 @@ class DockerV2Registry:
         self.__url = url
         self.__user = user
         self.__password = password
+
+    def __key(self):
+        return self.__url
+
+    def __hash__(self):
+        return hash(self.__key())
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -42,6 +49,7 @@ class DockerV2Registry:
         request = urllib.request.Request(*args, **kwargs)
         return urllib.request.urlopen(request, timeout=3)
 
+    @cache_with_timeout()
     def get_manifest(self, repo, tag):
         return makeManifest(
             DockerV2Registry.json_request(
@@ -85,6 +93,7 @@ class DockerV2Registry:
     def get_number_of_layers(self, repo, tag):
         return self.get_manifest(repo, tag).get_number_of_layers()
 
+    @cache_with_timeout()
     def get_size_of_layers(self, repo, tag):
         result = 0
 

@@ -3,6 +3,7 @@ import json
 
 import flask
 
+from docker_registry_frontend.cache import cache_with_timeout
 from docker_registry_frontend.registry import DockerV2Registry
 from docker_registry_frontend.storage import STORAGE_DRIVERS
 
@@ -125,6 +126,8 @@ if __name__ == "__main__":
 
     with open(arguments.config, 'r') as config_file:
         config = json.load(config_file)
+
+    cache_with_timeout.DEFAULT_TIMEOUT = config.get('cache_timeout', 0)
 
     registry_web_storage = STORAGE_DRIVERS[config['storage']['driver']](
         **config['storage']
