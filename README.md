@@ -1,6 +1,8 @@
 # docker-registry-frontend
 Web front end to display the content of multiple Docker registries
 
+![Build Status](https://travis-ci.org/brennerm/docker-registry-frontend.svg?branch=master)
+
 ## Feature Overview
 - browse available Docker images and check the availability of multiple Docker registries
 - add and remove registries via the web interface
