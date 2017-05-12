@@ -4,11 +4,11 @@
         {% block head %}
         <title>{% block title %}{% endblock %} - Docker Registry Web</title>
         {% endblock %}
-        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='styles/bootstrap-3.3.7-dist/css/bootstrap.min.css') }}">
+        <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='bower_components/bootstrap/dist/css/bootstrap.min.css') }}">
         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='styles/custom.css') }}">
-        <script src= "{{ url_for('static', filename='js/jquery/jquery-3.2.1.min.js') }}"></script>
-        <script src= "{{ url_for('static', filename='js/clipboard.js-master/dist/clipboard.min.js') }}"></script>
-        <script src= "{{ url_for('static', filename='js/bootstrap-validator-0.11.9/dist/validator.min.js') }}"></script>
+        <script src= "{{ url_for('static', filename='bower_components/jquery/dist/jquery.min.js') }}"></script>
+        <script src= "{{ url_for('static', filename='bower_components/clipboard/dist/clipboard.min.js') }}"></script>
+        <script src= "{{ url_for('static', filename='bower_components/bootstrap-validator/dist/validator.min.js') }}"></script>
     </head>
     <body>
         <div id="header">{% block header %}{% endblock %}</div>

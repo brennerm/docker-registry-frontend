@@ -1,0 +1,24 @@
+{
+  "name": "docker-registry-frontend",
+  "homepage": "https://github.com/brennerm/docker-registry-frontend",
+  "authors": [
+    "brennerm <xamrennerb@gmail.com>"
+  ],
+  "description": "Frontend for your Docker registries",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.2.1",
+    "bootstrap": "^3.3.7",
+    "bootstrap-validator": "^0.11.9",
+    "clipboard": "^1.6.1"
+  }
+}
