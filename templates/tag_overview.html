@@ -17,7 +17,7 @@
             <tr>
                 <td><a href="/registry/{{registry.name}}/repo/{{repo}}/tag/{{tag}}">{{tag}}</a></td>
                 <td>{{ registry.get_number_of_layers(repo, tag) }}</td>
-                <td>{{ '%0.2f' % (registry.get_size_of_layers(repo, tag) / 1024 ** 2) }} MB</td>
+                <td>{{ registry.get_size_of_layers(repo, tag) | to_mb }} MB</td>
                 <td>{{ registry.get_created_date(repo, tag) }}</td>
             </tr>
             {% endfor %}

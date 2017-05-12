@@ -14,6 +14,7 @@
                 <th>Name</th>
                 <th>URL</th>
                 <th>Number of Repos</th>
+                <th>Size</th>
                 <th>Online</th>
                 <th></th>
             </tr>
@@ -25,16 +26,13 @@
                 <td>{{ registry.url}}</td>
                 {% if registry.is_online() %}
                 <td>{{ registry.get_number_of_repos() }}</td>
+                <td>{{ registry.get_size_of_registry() | to_mb }} MB</td>
+                <td><span class="glyphicon glyphicon-ok-circle text-success"></span></td>
                 {% else %}
                 <td>N/A</td>
+                <td>N/A</td>
+                <td><span class="glyphicon glyphicon-remove-circle text-danger"></span></td>
                 {% endif %}
-                <td>
-                    {% if registry.is_online() %}
-                    <span class="glyphicon glyphicon-ok-circle text-success"></span>
-                    {% else %}
-                    <span class="glyphicon glyphicon-remove-circle text-danger"></span>
-                    {% endif %}
-                </td>
                 <td>
                     <form action="/remove_registry?id={{identifier}}" method="post">
                         <button type="submit" class="btn btn-danger btn-xs">

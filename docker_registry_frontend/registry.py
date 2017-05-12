@@ -86,25 +86,33 @@ class DockerV2Registry:
         return self.get_manifest(repo, tag).get_number_of_layers()
 
     def get_size_of_layers(self, repo, tag):
-        layers = DockerV2Registry.json_request(
-            DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
-                url=self.__url,
-                repo=repo,
-                tag=tag
-            )
-        )['fsLayers']
-
         result = 0
 
-        for layer in layers:
+        for layer_id in self.get_manifest(repo, tag).get_layer_ids():
             result += int(DockerV2Registry.request(
                 DockerV2Registry.GET_LAYER_TEMPLATE.format(
                     url=self.__url,
                     repo=repo,
-                    digest=layer['blobSum']
+                    digest=layer_id
                 ),
                 method='HEAD'
             ).info()['Content-Length'])
+
+        return result
+
+    def get_size_of_repo(self, repo):
+        result = 0
+
+        for tag in self.get_tags(repo):
+            result += self.get_size_of_layers(repo, tag)
+
+        return result
+
+    def get_size_of_registry(self):
+        result = 0
+
+        for repo in self.get_repos():
+            result += self.get_size_of_repo(repo)
 
         return result
 

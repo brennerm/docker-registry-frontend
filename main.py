@@ -31,6 +31,11 @@ class DockerRegistryWeb:
 app = flask.Flask(__name__)
 
 
+@app.template_filter('to_mb')
+def reverse_filter(value):
+    return '%0.2f' % (value / 1024 ** 2)
+
+
 @app.route('/')
 def registry_overview():
     return flask.render_template('registry_overview.html',

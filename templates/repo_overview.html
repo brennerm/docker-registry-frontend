@@ -8,6 +8,7 @@
             <tr>
                 <th>Name</th>
                 <th>Number of Tags</th>
+                <th>Size</th>
             </tr>
         </thead>
         <tbody>
@@ -15,6 +16,7 @@
             <tr>
                 <td><a href="{{url_for('tag_overview', registry_name=registry.name, repo=repo)}}">{{repo}}</a></td>
                 <td>{{ registry.get_number_of_tags(repo) }}</td>
+                <td>{{ registry.get_size_of_repo(repo) | to_mb }} MB</td>
             </tr>
             {% endfor %}
         </tbody>

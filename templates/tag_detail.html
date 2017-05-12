@@ -21,7 +21,7 @@
             <label>Size</label>
             <div class="input-group">
                 <span class="input-group-addon glyphicon glyphicon-floppy-disk"></span>
-                <input type="text" class="form-control" value="{{'%0.2f' % (registry.get_size_of_layers(repo, tag) / 1024 ** 2)}}" readonly>
+                <input type="text" class="form-control" value="{{ registry.get_size_of_layers(repo, tag) | to_mb }}" readonly>
                 <div class="input-group-addon">MB</div>
             </div>
         </div>

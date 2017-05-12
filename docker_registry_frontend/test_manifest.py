@@ -126,5 +126,5 @@ class TestDockerRegistryManifest:
 class TestDockerRegistrySchema1Manifest(TestCase, TestDockerRegistryManifest):
     def setUp(self):
         self.manifest = DockerRegistrySchema1Manifest(
-            json.loads(docker_registry_schema1_manifest_content, encoding='utf-8')
+            json.loads(docker_registry_schema1_manifest_content)
         )
