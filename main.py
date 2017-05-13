@@ -1,5 +1,6 @@
 import argparse
 import json
+import urllib.parse
 
 import flask
 
@@ -33,8 +34,18 @@ app = flask.Flask(__name__)
 
 
 @app.template_filter('to_mb')
-def reverse_filter(value):
+def to_mb_filter_filter(value):
     return '%0.2f' % (value / 1024 ** 2)
+
+
+@app.template_filter('urlencode')
+def urlencode_filter(value):
+    return urllib.parse.quote(value, safe='')
+
+
+@app.template_filter('urldecode')
+def urldecode_filter(value):
+    return urllib.parse.unquote(value)
 
 
 @app.route('/')
@@ -100,7 +111,7 @@ def tag_overview(registry_name, repo):
 
     return flask.render_template('tag_overview.html',
                                  registry=registry,
-                                 repo=repo)
+                                 repo=urldecode_filter(repo))
 
 
 @app.route('/registry/<registry_name>/repo/<repo>/tag/<tag>')
@@ -112,7 +123,7 @@ def tag_detail(registry_name, repo, tag):
 
     return flask.render_template('tag_detail.html',
                                  registry=registry,
-                                 repo=repo,
+                                 repo=urldecode_filter(repo),
                                  tag=tag
                                  )
 

@@ -3,7 +3,7 @@ import json
 import os
 import sqlite3
 
-from docker_registry_frontend.registry import DockerV2Registry
+from docker_registry_frontend.registry import make_registry
 
 
 class DockerRegistryWebStorage(abc.ABC):
@@ -65,7 +65,7 @@ class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
     def get_registries(self):
         registries = {}
         for identifier, config in self.__read().items():
-            registries[identifier] = DockerV2Registry(
+            registries[identifier] = make_registry(
                 config['name'],
                 config['url'],
                 config.get('user', None),
@@ -102,7 +102,7 @@ class DockerRegistrySQLiteStorage(DockerRegistryWebStorage):
 
         for row in self.__execute('SELECT * FROM registries;'):
             identifier, name, url, user, password = row
-            registries[str(identifier)] = DockerV2Registry(
+            registries[str(identifier)] = make_registry(
                 name,
                 url,
                 user,

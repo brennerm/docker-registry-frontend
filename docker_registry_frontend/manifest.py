@@ -63,10 +63,7 @@ class DockerRegistrySchema1Manifest(DockerRegistryManifest):
         for layer in self._content['fsLayers']:
             layer_ids.append(layer['blobSum'])
 
-        return layer_ids
-
-    def get_number_of_layers(self):
-        return len(self._content['fsLayers'])
+        return set(layer_ids)
 
     def get_volumes(self):
         return self.__get_first_value('config', 'Volumes')
