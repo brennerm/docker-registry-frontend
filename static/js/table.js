@@ -1,5 +1,3 @@
-
-
 $(document).ready( function () {
     $.extend( $.fn.dataTable.defaults, {
         lengthChange: false
