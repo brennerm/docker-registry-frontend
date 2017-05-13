@@ -5,7 +5,7 @@ import urllib.parse
 import flask
 
 from docker_registry_frontend.cache import cache_with_timeout
-from docker_registry_frontend.registry import DockerV2Registry
+from docker_registry_frontend.registry import make_registry
 from docker_registry_frontend.storage import STORAGE_DRIVERS
 
 
@@ -59,7 +59,7 @@ def test_registry_connection():
     url = flask.request.args.get('url')
 
     try:
-        if url and DockerV2Registry(None, url).is_online():
+        if url and make_registry(None, url).is_online():
             return '', 200
         else:
             return '', 400
