@@ -110,12 +110,6 @@ class TestDockerRegistryManifest:
             {'5000/tcp': {}}
         )
 
-    def test_get_number_of_layers(self):
-        self.assertEqual(
-            self.manifest.get_number_of_layers(),
-            9
-        )
-
     def test_get_volumes(self):
         self.assertEqual(
             self.manifest.get_volumes(),

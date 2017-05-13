@@ -8,9 +8,6 @@ class DockerRegistryManifest(abc.ABC):
     def __init__(self, content):
         self._content = content
 
-    def get_number_of_layers(self):
-        raise NotImplementedError
-
     def get_created_date(self):
         raise NotImplementedError
 
