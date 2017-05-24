@@ -13,6 +13,7 @@ Web front end to display the content of multiple Docker registries
 ```
 $ git clone git@github.com:brennerm/docker-registry-frontend.git && cd docker-registry-frontend
 $ pip3 install -r requirements.txt
+$ bower install
 ```
 
 ## Usage
