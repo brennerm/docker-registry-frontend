@@ -34,6 +34,11 @@ optional arguments:
 $ python3 main.py config.json
 ```
 
+Alternatively you can use the prebuilt Docker image.
+```
+docker run brennerm/docker-registry-frontend
+```
+
 ## Configuration
 ### Caching
 It's possible to enable a caching functionality to keep the frontend fast even when viewing thousands of repos and tags.
