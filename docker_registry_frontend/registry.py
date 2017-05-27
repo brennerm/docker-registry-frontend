@@ -14,6 +14,8 @@ def nested_get(dictionary, *keys, default=None):
 
 
 class DockerRegistry(abc.ABC):
+    version = None
+
     def __init__(self, name, url, user=None, password=None):
         self._name = name
         self._url = url
@@ -126,6 +128,8 @@ class DockerV1Registry(DockerRegistry):
     GET_IMAGE_ANCESTORS = '{url}/v1/images/{image_id}/ancestry'
     GET_LAYER_TEMPLATE = '{url}/v1/images/{image_id}/layer'
 
+    version = 1
+
     def __get_image_id(self, repo, tag):
         return DockerRegistry.string_request(DockerV1Registry.GET_IMAGE_ID_TEMPLATE.format(
             url=self._url,
@@ -198,6 +202,8 @@ class DockerV2Registry(DockerRegistry):
     GET_ALL_TAGS_TEMPLATE = '{url}/v2/{repo}/tags/list'
     GET_MANIFEST_TEMPLATE = '{url}/v2/{repo}/manifests/{tag}'
     GET_LAYER_TEMPLATE = '{url}/v2/{repo}/blobs/{digest}'
+
+    version = 2
 
     @cache_with_timeout()
     def get_manifest(self, repo, tag):

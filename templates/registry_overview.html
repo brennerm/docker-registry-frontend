@@ -13,8 +13,9 @@
         <tr>
             <th>Name</th>
             <th>URL</th>
-            <th>Number of Repos</th>
             <th>Online</th>
+            <th>Number of Repos</th>
+            <th>Version</th>
             <th data-orderable="false"></th>
         </tr>
     </thead>
@@ -24,11 +25,13 @@
             <td><a href="{{ url_for('repo_overview', registry_name=registry.name) }}">{{registry.name}}</a></td>
             <td>{{ registry.url}}</td>
             {% if registry.is_online() %}
-            <td>{{ registry.get_number_of_repos() }}</td>
             <td data-order="1" data-search="online"><span class="glyphicon glyphicon-ok-circle text-success"></span></td>
+            <td>{{ registry.get_number_of_repos() }}</td>
+            <td>v{{ registry.version }}</td>
             {% else %}
-            <td data-order="0"></td>
             <td data-order="0" data-search="offline"><span class="glyphicon glyphicon-remove-circle text-danger"></span></td>
+            <td data-order="0"></td>
+            <td data-order="0"></td>
             {% endif %}
             <td>
                 <form action="/remove_registry?id={{identifier}}" method="post">
