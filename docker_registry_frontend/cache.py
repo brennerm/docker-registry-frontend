@@ -15,7 +15,7 @@ class cache_with_timeout:
 
             if key in self.__cache:
                 ts, result = self.__cache[key]
-                if time.time() - ts < timeout:
+                if (time.time() - ts) < timeout:
                     return result
 
             result = f(*args, **kwargs)

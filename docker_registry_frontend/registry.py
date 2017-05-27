@@ -44,6 +44,7 @@ class DockerRegistry(abc.ABC):
         )
 
     @staticmethod
+    @cache_with_timeout(1)  # enable caching to improve performance of multiple consecutive calls
     def string_request(*args, **kwargs):
         return DockerRegistry.request(*args, **kwargs).read().decode()
 
