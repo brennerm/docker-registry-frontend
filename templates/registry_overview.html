@@ -14,7 +14,6 @@
             <th>Name</th>
             <th>URL</th>
             <th>Number of Repos</th>
-            <th>Size</th>
             <th>Online</th>
             <th data-orderable="false"></th>
         </tr>
@@ -26,7 +25,6 @@
             <td>{{ registry.url}}</td>
             {% if registry.is_online() %}
             <td>{{ registry.get_number_of_repos() }}</td>
-            <td>{{ registry.get_size_of_registry() | to_mb }} MB</td>
             <td data-order="1" data-search="online"><span class="glyphicon glyphicon-ok-circle text-success"></span></td>
             {% else %}
             <td data-order="0"></td>
