@@ -8,6 +8,7 @@ COPY Dockerfile $SOURCE_DIR
 COPY LICENSE $SOURCE_DIR
 COPY requirements.txt $SOURCE_DIR
 COPY bower.json $SOURCE_DIR
+COPY .bowerrc $SOURCE_DIR
 COPY config.json $SOURCE_DIR
 COPY docker_registry_frontend $SOURCE_DIR/docker_registry_frontend
 COPY static $SOURCE_DIR/static
