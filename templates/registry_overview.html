@@ -34,7 +34,7 @@
             <td data-order="0"></td>
             {% endif %}
             <td>
-                <form action="/remove_registry?id={{identifier}}" method="post">
+                <form action="{{url_for('remove_registry', id=identifier)}}" method="post">
                     <button type="submit" class="btn btn-danger btn-xs">
                         <span class="glyphicon glyphicon-trash"></span>
                     </button>

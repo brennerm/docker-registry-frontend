@@ -4,10 +4,10 @@ import json
 import socket
 import urllib.error
 import urllib.request
+import urllib.parse
 
 from docker_registry_frontend.manifest import makeManifest
 from docker_registry_frontend.cache import cache_with_timeout
-
 
 def nested_get(dictionary, *keys, default=None):
     return functools.reduce(lambda el, key: el.get(key) if el else default, keys, dictionary)
@@ -39,6 +39,14 @@ class DockerRegistry(abc.ABC):
     def url(self):
         return self._url
 
+    @property
+    def supports_repo_deletion(self):
+        return False
+
+    @property
+    def supports_tag_deletion(self):
+        return False
+
     @staticmethod
     def json_request(*args, **kwargs):
         return json.loads(
@@ -54,6 +62,12 @@ class DockerRegistry(abc.ABC):
     def request(*args, **kwargs):
         request = urllib.request.Request(*args, **kwargs)
         return urllib.request.urlopen(request, timeout=3)
+
+    def delete_repo(self, repo):
+        raise NotImplementedError
+
+    def delete_tag(self, repo, tag):
+        raise NotImplementedError
 
     def is_online(self):
         raise NotImplementedError
@@ -123,6 +137,8 @@ class DockerV1Registry(DockerRegistry):
     ONLINE_TEMPLATE = '{url}/v1/_ping'
     GET_ALL_REPOS_TEMPLATE = '{url}/v1/search'
     GET_ALL_TAGS_TEMPLATE = '{url}/v1/repositories/{repo}/tags'
+    DELETE_REPO_TEMPLATE = '{url}/v1/repositories/{repo}/'
+    DELETE_TAG_TEMPLATE = '{url}/v1/repositories/{repo}/tags/{tag}'
     GET_IMAGE_ID_TEMPLATE = GET_ALL_TAGS_TEMPLATE + '/{tag}'
     GET_IMAGE_TEMPLATE = '{url}/v1/images/{image_id}/json'
     GET_IMAGE_ANCESTORS = '{url}/v1/images/{image_id}/ancestry'
@@ -144,6 +160,33 @@ class DockerV1Registry(DockerRegistry):
             url=self._url,
             image_id=image_id
         ))
+
+    @property
+    def supports_repo_deletion(self):
+        return True
+
+    @property
+    def supports_tag_deletion(self):
+        return True
+
+    def delete_repo(self, repo):
+        DockerRegistry.request(
+            DockerV1Registry.DELETE_REPO_TEMPLATE.format(
+                url=self._url,
+                repo=repo,
+            ),
+            method='DELETE'
+        )
+
+    def delete_tag(self, repo, tag):
+        DockerRegistry.request(
+            DockerV1Registry.DELETE_TAG_TEMPLATE.format(
+                url=self._url,
+                repo=repo,
+                tag=tag
+            ),
+            method='DELETE'
+        )
 
     def get_size_of_layer(self, repo, image_id):
         return int(DockerRegistry.request(DockerV1Registry.GET_LAYER_TEMPLATE.format(
@@ -205,6 +248,46 @@ class DockerV2Registry(DockerRegistry):
 
     version = 2
 
+    @property
+    def supports_tag_deletion(self):
+        try:
+            DockerRegistry.request(
+                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                    url=self._url,
+                    repo='foo',
+                    tag='bar'
+                ),
+                method='DELETE'
+            )
+        except urllib.error.HTTPError as e:
+            if e.code == 405:
+                return False
+            else:
+                return True
+
+    def delete_tag(self, repo, tag):
+        digest = DockerRegistry.request(
+            DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                url=self._url,
+                repo=repo,
+                tag=tag
+            ),
+            method='HEAD',
+            headers={'Accept': 'application/vnd.docker.distribution.manifest.v2+json'}
+        ).info()['Docker-Content-Digest']
+
+        try:
+            DockerRegistry.request(
+                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                    url=self._url,
+                    repo=repo,
+                    tag=digest
+                ),
+                method='DELETE'
+            )
+        except urllib.error.HTTPError:
+            raise
+
     @cache_with_timeout()
     def get_manifest(self, repo, tag):
         return makeManifest(
@@ -238,7 +321,7 @@ class DockerV2Registry(DockerRegistry):
             repo=repo
         ))['tags']
 
-        return tags
+        return tags or []
 
     def get_layer_ids(self, repo, tag):
         return self.get_manifest(repo, tag).get_layer_ids()

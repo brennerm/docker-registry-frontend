@@ -91,6 +91,27 @@ def remove_registry():
     return flask.redirect(flask.url_for('registry_overview'))
 
 
+@app.route('/delete_repo', methods=['POST'])
+def delete_repo():
+    registry = registry_web.get_registry_by_name(flask.request.args.get('registry_name'))
+    repo = flask.request.args.get('repo')
+
+    registry.delete_repo(urldecode_filter(repo))
+
+    return flask.redirect(flask.url_for('repo_overview', registry_name=registry.name))
+
+
+@app.route('/delete_tag', methods=['POST'])
+def delete_tag():
+    registry = registry_web.get_registry_by_name(flask.request.args.get('registry_name'))
+    repo = flask.request.args.get('repo')
+    tag = flask.request.args.get('tag')
+
+    registry.delete_tag(repo, tag)
+
+    return flask.redirect(flask.url_for('tag_overview', registry_name=registry.name, repo=repo))
+
+
 @app.route('/registry/<registry_name>')
 def repo_overview(registry_name):
     try:
