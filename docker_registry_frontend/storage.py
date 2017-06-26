@@ -13,9 +13,11 @@ class DockerRegistryWebStorage(abc.ABC):
     def add_registry(self, name, url, user=None, password=None):
         raise NotImplementedError
 
-    def remove_registry(self, identifier):
+    def empty(self):
         raise NotImplementedError
 
+    def remove_registry(self, identifier):
+        raise NotImplementedError
 
 class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
     def __init__(self, file_path, *args, **kwargs):
@@ -62,6 +64,9 @@ class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
 
         self.__write(registries)
 
+    def empty(self):
+        self.__write({})
+
     def get_registries(self):
         registries = {}
         for identifier, config in self.__read().items():
@@ -93,6 +98,9 @@ class DockerRegistrySQLiteStorage(DockerRegistryWebStorage):
     def add_registry(self, name, url, user=None, password=None):
         self.__execute('INSERT INTO registries (name, url, user, password) VALUES (:name, :url, :user, :password);',
                        {'name': name, 'url': url, 'user': user, 'password': password})
+
+    def empty(self):
+        self.__execute('DELETE FROM registries;')
 
     def remove_registry(self, identifier):
         self.__execute('DELETE FROM registries WHERE id = :id;', {'id': identifier})
