@@ -7,6 +7,7 @@ Web front end to display the content of multiple Docker registries
 ## Feature Overview
 - browse available Docker images and check the availability of multiple Docker registries
 - add and remove registries via the web interface
+- delete repositories and tags (automatically detected if registry supports it)
 - support for Docker registries V1 and V2
 - get detailed information about your Docker images
 
