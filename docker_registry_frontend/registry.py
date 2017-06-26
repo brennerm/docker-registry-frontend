@@ -18,7 +18,7 @@ class DockerRegistry(abc.ABC):
 
     def __init__(self, name, url, user=None, password=None):
         self._name = name
-        self._url = url
+        self._url = url if url.startswith('http') else 'http://' + url
         self._user = user
         self._password = password
 
