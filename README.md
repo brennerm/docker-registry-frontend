@@ -37,8 +37,9 @@ $ python3 main.py config.json
 
 Alternatively you can use the prebuilt Docker image.
 ```
-docker run brennerm/docker-registry-frontend
+docker run -d -p 127.0.0.1:80:80 brennerm/docker-registry-frontend
 ```
+This makes the front end available at http://127.0.0.1:80.
 
 ## Configuration
 ### Caching
