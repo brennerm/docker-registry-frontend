@@ -153,7 +153,7 @@ if __name__ == "__main__":
     argparser.add_argument('config')
     argparser.add_argument('-d', '--debug', help='Run application in debug mode', action='store_true', default=False)
     argparser.add_argument('-i', '--ip-address', help='IP address to bind application to', default='0.0.0.0')
-    argparser.add_argument('-p', '--port', help='Port to bind application to', default=8080)
+    argparser.add_argument('-p', '--port', help='Port to bind application to', default=8080, type=int)
     arguments = argparser.parse_args()
 
     with open(arguments.config, 'r') as config_file:
