@@ -20,8 +20,8 @@ $ bower install
 
 ## Usage
 ```
-$ python3 main.py -h
-usage: main.py [-h] [-d] [-i IP_ADDRESS] [-p PORT] config
+$ python3 frontend.py -h
+usage: frontend.py [-h] [-d] [-i IP_ADDRESS] [-p PORT] config
 
 positional arguments:
   config
@@ -32,7 +32,7 @@ optional arguments:
   -i IP_ADDRESS, --ip-address IP_ADDRESS IP address to bind application to
   -p PORT, --port PORT  Port to bind application to
 
-$ python3 main.py config.json
+$ python3 frontend.py config.json
 ```
 
 Alternatively you can use the prebuilt Docker image.

@@ -2,7 +2,6 @@ FROM ubuntu:xenial
 MAINTAINER "xamrennerb@gmail.com"
 
 ENV SOURCE_DIR /root
-ENV ENTRYPOINT "cd $SOURCE_DIR && python3 $SOURCE_DIR/main.py -i 127.0.0.1 -p 8080 config.json"
 
 COPY Dockerfile $SOURCE_DIR
 COPY LICENSE $SOURCE_DIR
@@ -13,7 +12,7 @@ COPY config.json $SOURCE_DIR
 COPY docker_registry_frontend $SOURCE_DIR/docker_registry_frontend
 COPY static $SOURCE_DIR/static
 COPY templates $SOURCE_DIR/templates
-COPY main.py $SOURCE_DIR
+COPY frontend.py $SOURCE_DIR
 
 WORKDIR $SOURCE_DIR
 
@@ -43,4 +42,4 @@ RUN ln -s /etc/nginx/sites-available/docker-registry-frontend.conf /etc/nginx/si
 EXPOSE 80
 VOLUME ['/etc/nginx/sites-enabled/docker-registry-frontend.conf', '/root/config.json']
 
-ENTRYPOINT service nginx start && python3 main.py -i 127.0.0.1 -p 8080 config.json
+ENTRYPOINT service nginx start && python3 frontend.py -i 127.0.0.1 -p 8080 config.json
