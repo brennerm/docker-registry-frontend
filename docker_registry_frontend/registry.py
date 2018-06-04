@@ -189,10 +189,14 @@ class DockerV1Registry(DockerRegistry):
         )
 
     def get_size_of_layer(self, repo, image_id):
-        return int(DockerRegistry.request(DockerV1Registry.GET_LAYER_TEMPLATE.format(
-            url=self._url,
-            image_id=image_id
-        )).info()['Content-Length'])
+        try:
+            return int(DockerRegistry.request(DockerV1Registry.GET_LAYER_TEMPLATE.format(
+                url=self._url,
+                image_id=image_id
+            )).info()['Content-Length'])
+
+        except urllib.error.HTTPError:  # required to support Windows images, see https://github.com/brennerm/docker-registry-frontend/issues/5
+            return 0
 
     def get_tags(self, repo):
         return DockerRegistry.json_request(DockerV1Registry.GET_ALL_TAGS_TEMPLATE.format(
@@ -328,14 +332,18 @@ class DockerV2Registry(DockerRegistry):
 
     @cache_with_timeout()
     def get_size_of_layer(self, repo, layer_id):
-        return int(DockerRegistry.request(
-                DockerV2Registry.GET_LAYER_TEMPLATE.format(
-                    url=self._url,
-                    repo=repo,
-                    digest=layer_id
-                ),
-                method='HEAD'
-            ).info()['Content-Length'])
+        try:
+            return int(DockerRegistry.request(
+                    DockerV2Registry.GET_LAYER_TEMPLATE.format(
+                        url=self._url,
+                        repo=repo,
+                        digest=layer_id
+                    ),
+                    method='HEAD'
+                ).info()['Content-Length'])
+        
+        except urllib.error.HTTPError:  # required to support Windows images, see https://github.com/brennerm/docker-registry-frontend/issues/5
+            return 0
 
     def get_created_date(self, repo, tag):
         return self.get_manifest(repo, tag).get_created_date()
