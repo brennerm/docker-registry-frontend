@@ -24,4 +24,4 @@ COPY docker-registry-frontend.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 VOLUME ['/etc/nginx/sites-enabled/docker-registry-frontend.conf', '/root/config.json']
 
-ENTRYPOINT python3 frontend.py -i 127.0.0.1 -p 8080 config.json & nginx -g "daemon off;"
+ENTRYPOINT python3 frontend.py -i 0.0.0.0 -p 8080 config.json & nginx -g "daemon off;"
