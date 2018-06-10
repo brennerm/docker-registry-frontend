@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import socket
 import urllib.parse
 
 import flask
@@ -166,6 +167,9 @@ if __name__ == "__main__":
     registry_web_storage = STORAGE_DRIVERS[config['storage']['driver']](
         **config['storage']
     )
+
+    if 'http_timeout' in config:
+        socket.setdefaulttimeout(float(config_file['http_timeout']))
 
     registry_web = DockerRegistryWeb(registry_web_storage)
     app.run(

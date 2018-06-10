@@ -73,8 +73,16 @@ The following options are currently implemented:
   }
 }
 ```
-
 If you'd like to use another storage feel free to create an issue or open a pull request.
+
+### HTTP timeout
+Depending on the performance of your registries and the size of your images the UI may run into HTTP timeouts.
+To prevent this you can increase the timeout value.
+```json
+{
+  "http_timeout": 2.5
+}
+```
 
 ## Images
 ### Registry Overview
