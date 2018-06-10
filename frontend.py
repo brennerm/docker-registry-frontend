@@ -76,7 +76,7 @@ def add_registry():
     elif flask.request.method == 'POST':
         registry_web.add_registry(
             flask.request.form['name'],
-            flask.request.form['url'],
+            flask.request.form['url'].rstrip('/'),
             flask.request.form.get('user', None),
             flask.request.form.get('password', None)
         )
