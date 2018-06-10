@@ -1,0 +1,14 @@
+version: '3'
+services:
+  registry:
+    image: registry:2
+    ports:
+      - '127.0.0.1:5000:5000'
+    environment:
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
+
+  registry_frontend:
+    image: brennerm/docker-registry-frontend:latest
+    ports:
+      - '127.0.0.1:8080:8080'
+
