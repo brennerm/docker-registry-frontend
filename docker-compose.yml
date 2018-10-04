@@ -7,8 +7,25 @@ services:
     environment:
       - REGISTRY_STORAGE_DELETE_ENABLED=true
 
+  registry-basic-auth:
+    image: registry:2
+    ports:
+      - '127.0.0.1:5001:5000'
+    environment:
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm
+      - REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt
+      - REGISTRY_HTTP_TLS_KEY=/certs/domain.key
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
+    volumes:
+      - .auth:/auth
+      - .certs:/certs
+
   registry_frontend:
-    image: brennerm/docker-registry-frontend:latest
+    build: .
     ports:
       - '127.0.0.1:8080:8080'
-
+    links:
+      - registry
+      - registry-basic-auth
