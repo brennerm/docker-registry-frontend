@@ -40,6 +40,14 @@ class DockerRegistry(abc.ABC):
         return self._url
 
     @property
+    def user(self):
+        return self._user
+
+    @property
+    def password(self):
+        return self._password
+
+    @property
     def supports_repo_deletion(self):
         return False
 
