@@ -19,6 +19,14 @@ class DockerRegistryWeb:
     def registries(self):
         return self.__storage.get_registries()
 
+    def get_registry(self, identifier):
+        for key, registry in self.registries.items():
+            print(key, identifier)
+            if key == identifier:
+                return registry
+
+        raise KeyError
+
     def get_registry_by_name(self, name):
         for registry in self.registries.values():
             if registry.name == name:
@@ -29,8 +37,12 @@ class DockerRegistryWeb:
     def add_registry(self, name, url, user=None, password=None):
         self.__storage.add_registry(name, url, user, password)
 
-    def remove_registry(self, name):
-        self.__storage.remove_registry(name)
+    def update_registry(self, identifier, name, url, user=None, password=None):
+        self.__storage.update_registry(identifier, name, url, user=None, password=None)
+
+    def remove_registry(self, identifier):
+        self.__storage.remove_registry(identifier)
+
 
 app = flask.Flask(__name__)
 
@@ -72,13 +84,44 @@ def test_registry_connection():
 @app.route('/add_registry', methods=['GET', 'POST'])
 def add_registry():
     if flask.request.method == 'GET':
-        return flask.render_template('add_registry.html')
+        return flask.render_template('registry_form.html')
     elif flask.request.method == 'POST':
         registry_web.add_registry(
             flask.request.form['name'],
             flask.request.form['url'].rstrip('/'),
             flask.request.form.get('user', None),
             flask.request.form.get('password', None)
+        )
+
+        return flask.redirect(flask.url_for('registry_overview'))
+
+
+@app.route('/update_registry', methods=['GET', 'POST'])
+def update_registry():
+    identifier = flask.request.args.get('id')
+
+    if flask.request.method == 'GET':
+        registry = registry_web.get_registry(identifier)
+        return flask.render_template(
+            'registry_form.html',
+            identifier=identifier,
+            name=registry.name,
+            url=registry.url,
+            user=registry.user,
+            password=registry.password
+        )
+    elif flask.request.method == 'POST':
+        name = flask.request.form['name']
+        url = flask.request.form['url'].rstrip('/')
+        user = flask.request.form.get('user', None)
+        password = flask.request.form.get('password', None)
+
+        registry_web.update_registry(
+            identifier,
+            name,
+            url,
+            user,
+            password
         )
 
         return flask.redirect(flask.url_for('registry_overview'))

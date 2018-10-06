@@ -34,6 +34,11 @@
             <td data-order="0"></td>
             {% endif %}
             <td>
+                <a href="{{url_for('update_registry', id=identifier)}}">
+                    <button type="submit" class="btn btn-primary btn-xs">
+                        <span class="glyphicon glyphicon-pencil"></span>
+                    </button>
+                </a>
                 <form action="{{url_for('remove_registry', id=identifier)}}" method="post">
                     <button type="submit" class="btn btn-danger btn-xs">
                         <span class="glyphicon glyphicon-trash"></span>

@@ -13,11 +13,15 @@ class DockerRegistryWebStorage(abc.ABC):
     def add_registry(self, name, url, user=None, password=None):
         raise NotImplementedError
 
+    def update_registry(self, identifier, name, url, user=None, password=None):
+        raise NotImplementedError
+
     def empty(self):
         raise NotImplementedError
 
     def remove_registry(self, identifier):
         raise NotImplementedError
+
 
 class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
     def __init__(self, file_path, *args, **kwargs):
@@ -49,6 +53,21 @@ class DockerRegistryJsonFileStorage(DockerRegistryWebStorage):
         registries = self.__read()
 
         registries[self.__get_new_id()] = {
+            'name': name,
+            'url': url,
+            'user': user,
+            'password': password
+        }
+
+        self.__write(registries)
+
+    def update_registry(self, identifier, name, url, user=None, password=None):
+        registries = self.__read()
+
+        if identifier not in registries:
+            raise KeyError
+
+        registries[identifier] = {
             'name': name,
             'url': url,
             'user': user,
@@ -96,8 +115,12 @@ class DockerRegistrySQLiteStorage(DockerRegistryWebStorage):
         return res
 
     def add_registry(self, name, url, user=None, password=None):
-        self.__execute('INSERT INTO registries (name, url, user, password) VALUES (:name, :url, :user, :password);',
+        self.__execute(f'INSERT INTO registries (name, url, user, password) VALUES (:name, :url, :user, :password);',
                        {'name': name, 'url': url, 'user': user, 'password': password})
+
+    def update_registry(self, identifier, name, url, user=None, password=None):
+        self.__execute('UPDATE registries SET name = :name, url = :url, user = :user, password = :password WHERE id = :id;',
+                       {'id': identifier, 'name': name, 'url': url, 'user': user, 'password': password})
 
     def empty(self):
         self.__execute('DELETE FROM registries;')

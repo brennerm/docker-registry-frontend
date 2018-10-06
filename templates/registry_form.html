@@ -1,13 +1,25 @@
 {% extends "layout.html" %}
-{% block title %}Add Registry{% endblock %}
+
+{% block title %}
+{% if identifier %}
+Update Registry - {{name}}
+{% else %}
+Add Registry
+{% endif %}
+{% endblock %}
+
 {% block header %}{% include 'breadcrumbs.html' %}{% endblock %}
 {% block content %}
-<form data-toggle="validator" role="form" action="/add_registry" method="post">
+{% if identifier %}
+<form data-toggle="validator" role="form" action="{{ url_for('update_registry', id=identifier) }}" method="post">
+{% else %}
+<form data-toggle="validator" role="form" action="{{ url_for('add_registry') }}" method="post">
+{% endif %}
     <div class="form-group">
         <label>Name</label>
         <div class="input-group">
             <span class="input-group-addon glyphicon glyphicon-tag"></span>
-            <input type="text" id="name" name="name" class="form-control" placeholder="Name"
+            <input type="text" id="name" name="name" value="{{name | default('')}}" class="form-control" placeholder="Name"
                    required data-required-error="Name for registry is required">
         </div>
         <div class="help-block with-errors"></div>
@@ -16,7 +28,7 @@
         <label>URL</label>
         <div class="input-group">
             <span class="input-group-addon glyphicon glyphicon-link"></span>
-            <input type="text" id="url" name="url" class="form-control" placeholder="URL"
+            <input type="text" id="url" name="url" value="{{url | default('')}}" class="form-control" placeholder="URL"
                    required data-required-error="URL of registry is required">
         </div>
         <div class="help-block with-errors"></div>
