@@ -258,7 +258,7 @@ class DockerV1Registry(DockerRegistry):
 
 
 class DockerV2Registry(DockerRegistry):
-    API_BASE = '{url}/v2'
+    API_BASE = '{url}/v2/'
     GET_ALL_REPOS_TEMPLATE = '{url}/v2/_catalog'
     GET_ALL_TAGS_TEMPLATE = '{url}/v2/{repo}/tags/list'
     GET_MANIFEST_TEMPLATE = '{url}/v2/{repo}/manifests/{tag}'
