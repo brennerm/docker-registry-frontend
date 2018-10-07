@@ -41,7 +41,7 @@ class DockerRegistryWeb:
         self.__storage.add_registry(name, url, user, password)
 
     def update_registry(self, identifier, name, url, user=None, password=None):
-        self.__storage.update_registry(identifier, name, url, user=None, password=None)
+        self.__storage.update_registry(identifier, name, url, user=user, password=password)
 
     def remove_registry(self, identifier):
         self.__storage.remove_registry(identifier)
