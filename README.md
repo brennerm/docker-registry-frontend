@@ -10,6 +10,7 @@ Web front end to display the content of multiple Docker registries
 - delete repositories and tags (automatically detected if registry supports it)
 - support for Docker registries V1 and V2
 - get detailed information about your Docker images
+- supports Basic Auth protected registries
 
 ## Installation
 ```

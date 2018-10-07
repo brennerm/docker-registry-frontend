@@ -3,12 +3,15 @@
 import argparse
 import json
 import urllib.parse
+import ssl
 
 import flask
 
 from docker_registry_frontend.cache import cache_with_timeout
 from docker_registry_frontend.registry import make_registry
 from docker_registry_frontend.storage import STORAGE_DRIVERS
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class DockerRegistryWeb:
@@ -38,7 +41,7 @@ class DockerRegistryWeb:
         self.__storage.add_registry(name, url, user, password)
 
     def update_registry(self, identifier, name, url, user=None, password=None):
-        self.__storage.update_registry(identifier, name, url, user=None, password=None)
+        self.__storage.update_registry(identifier, name, url, user=user, password=password)
 
     def remove_registry(self, identifier):
         self.__storage.remove_registry(identifier)
@@ -68,12 +71,14 @@ def registry_overview():
                                  registries=registry_web.registries)
 
 
-@app.route('/test_connection')
+@app.route('/test_connection', methods=['POST'])
 def test_registry_connection():
-    url = flask.request.args.get('url')
+    url = flask.request.form.get('url')
+    user = flask.request.form.get('user', None)
+    password = flask.request.form.get('password', None)
 
     try:
-        if url and make_registry(None, url).is_online():
+        if url and make_registry(None, url, user, password).is_online():
             return '', 200
         else:
             return '', 400
