@@ -105,7 +105,8 @@ class DockerRegistrySQLiteStorage(DockerRegistryWebStorage):
         self.__conn = sqlite3.connect(file_path, check_same_thread=False)
 
         cursor = self.__conn.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS registries (id INTEGER PRIMARY KEY, name TEXT NOT NULL, url TEXT NOT NULL, user TEXT, password TEXT);")
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS registries (id INTEGER PRIMARY KEY, name TEXT NOT NULL, url TEXT NOT NULL, user TEXT, password TEXT);")
 
     def __execute(self, *args, **kwargs):
         cursor = self.__conn.cursor()
@@ -115,12 +116,15 @@ class DockerRegistrySQLiteStorage(DockerRegistryWebStorage):
         return res
 
     def add_registry(self, name, url, user=None, password=None):
-        self.__execute(f'INSERT INTO registries (name, url, user, password) VALUES (:name, :url, :user, :password);',
-                       {'name': name, 'url': url, 'user': user, 'password': password})
+        self.__execute(
+            f'INSERT INTO registries (name, url, user, password) VALUES (:name, :url, :user, :password);',
+            {'name': name, 'url': url, 'user': user, 'password': password})
 
     def update_registry(self, identifier, name, url, user=None, password=None):
-        self.__execute('UPDATE registries SET name = :name, url = :url, user = :user, password = :password WHERE id = :id;',
-                       {'id': identifier, 'name': name, 'url': url, 'user': user, 'password': password})
+        self.__execute(
+            'UPDATE registries SET name = :name, url = :url, user = :user, password = :password WHERE id = :id;',
+            {'id': identifier, 'name': name, 'url': url, 'user': user,
+             'password': password})
 
     def empty(self):
         self.__execute('DELETE FROM registries;')
@@ -143,7 +147,35 @@ class DockerRegistrySQLiteStorage(DockerRegistryWebStorage):
         return registries
 
 
+class DockerRegistryEnvStorage(DockerRegistryWebStorage):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def get_registries(self):
+        return {
+            "1": make_registry(
+                name=os.environ["DOCKER_REGISTRY_FRONTEND_NAME"],
+                url=os.environ["DOCKER_REGISTRY_FRONTEND_URL"],
+                user=os.environ["DOCKER_REGISTRY_FRONTEND_USER"],
+                password=os.environ["DOCKER_REGISTRY_FRONTEND_PASSWORD"]
+            )
+        }
+
+    def update_registry(self, identifier, name, url, user=None, password=None):
+        pass
+
+    def empty(self):
+        pass
+
+    def remove_registry(self, identifier):
+        pass
+
+    def add_registry(self, name, url, user=None, password=None):
+        pass
+
+
 STORAGE_DRIVERS = {
     'sqlite': DockerRegistrySQLiteStorage,
-    'json': DockerRegistryJsonFileStorage
+    'json': DockerRegistryJsonFileStorage,
+    'env': DockerRegistryEnvStorage
 }

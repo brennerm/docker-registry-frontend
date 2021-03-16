@@ -1,1 +1,4 @@
 flask
+requests
+requests_toolbelt
+requests-cache

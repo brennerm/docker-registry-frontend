@@ -3,11 +3,11 @@
 {% block header %}{% include 'breadcrumbs.html' %}{% endblock %}
 {% block content %}
 {% if registry.is_online() %}
-<table id="repo_table" class="table table-striped">
+<table id="repo_table" class="table table-striped" data-page-length="50">
     <thead>
         <tr>
             <th>Name</th>
-            <th>Number of Tags</th>
+{#            <th>Number of Tags</th>#}
             <th></th>
         </tr>
     </thead>
@@ -15,7 +15,7 @@
         {% for repo in registry.get_repos() %}
         <tr>
             <td><a href="{{url_for('tag_overview', registry_name=registry.name, repo=(repo | urlencode))}}">{{repo}}</a></td>
-            <td>{{ registry.get_number_of_tags(repo) }}</td>
+{#            <td>{{ registry.get_number_of_tags(repo) }}</td>#}
             {% if registry.supports_repo_deletion %}
             <td>
                 <form action="{{url_for('delete_repo', registry_name=registry.name, repo=(repo | urlencode))}}" method="post">

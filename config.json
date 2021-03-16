@@ -1,6 +1,6 @@
 {
   "storage": {
-    "driver": "json",
-    "file_path": "db.json"
+    "driver": "env",
+    "cache_timeout": 0
   }
 }
