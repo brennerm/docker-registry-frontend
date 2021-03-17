@@ -180,6 +180,7 @@ class DockerV2Registry(DockerRegistry):
 
     version = 2
 
+    @property
     @functools.lru_cache(maxsize=2)
     def supports_tag_deletion(self):
         try:
