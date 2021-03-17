@@ -1,20 +1,14 @@
 import abc
-import base64
 import concurrent
 import functools
 import json
 import socket
-import time
 import urllib.error
 import urllib.request
 import urllib.parse
 import uuid
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Dict, Any
-
-import logging
-
-logging.basicConfig(level=logging.DEBUG)
 
 import requests
 import requests_cache
@@ -24,10 +18,6 @@ from requests.packages.urllib3.util.retry import Retry
 
 from docker_registry_frontend.manifest import make_manifest, \
     DockerRegistryCombinedManifest
-
-
-def nested_get(dictionary, *keys, default=None):
-    return functools.reduce(lambda el, key: el.get(key) if el else default, keys, dictionary)
 
 
 class DockerRegistry(abc.ABC):
@@ -102,8 +92,8 @@ class DockerRegistry(abc.ABC):
         r = requests.Request(method, url, **kwargs).prepare()
         r.prepare_auth((self._user, self._password))
         response = self._session.send(r, timeout=(10, 10))
-        # Clear cache on successfull deletion of a repo or tag
-        if r.method == 'DELETE' and response.status_code in range(200,300):
+        # Clear cache on successful deletion of a repo or tag
+        if r.method == 'DELETE' and response.status_code in range(200, 300):
             requests_cache.core.clear()
         return response
 

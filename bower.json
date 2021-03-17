@@ -1,8 +1,9 @@
 {
   "name": "docker-registry-frontend",
-  "homepage": "https://github.com/brennerm/docker-registry-frontend",
+  "homepage": "https://github.com/neuro-inc/docker-registry-frontend",
   "authors": [
-    "brennerm <xamrennerb@gmail.com>"
+    "brennerm <xamrennerb@gmail.com>",
+    "Alexey Naiden <alexey.naiden@neu.ro>"
   ],
   "description": "Frontend for your Docker registries",
   "main": "",

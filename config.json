@@ -1,6 +1,0 @@
-{
-  "storage": {
-    "driver": "env",
-    "cache_timeout": 0
-  }
-}
