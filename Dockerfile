@@ -1,5 +1,4 @@
 FROM python:alpine3.6
-MAINTAINER "xamrennerb@gmail.com"
 
 ENV SOURCE_DIR /root
 WORKDIR $SOURCE_DIR
@@ -21,7 +20,7 @@ RUN apk update && \
 
 COPY docker-registry-frontend.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 8080
 VOLUME ['/etc/nginx/sites-enabled/docker-registry-frontend.conf', '/root/config.json']
 
 ENTRYPOINT python3 frontend.py -i 0.0.0.0 -p 8080 config.json & nginx -g "daemon off;"

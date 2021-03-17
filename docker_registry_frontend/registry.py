@@ -6,6 +6,7 @@ import socket
 import urllib.error
 import urllib.request
 import urllib.parse
+import uuid
 from typing import Dict, Any
 
 import logging
@@ -77,20 +78,23 @@ class DockerRegistry(abc.ABC):
     def password(self):
         return self._password
 
-    @property
-    def supports_repo_deletion(self):
-        return False
-
-    @property
-    def supports_tag_deletion(self):
-        return False
+    @functools.lru_cache(maxsize=100)
+    def supports_tag_deletion(self, repo):
+        response = self.request(
+                'DELETE',
+                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                    url=self._url,
+                    repo=repo,
+                    tag=str(uuid.uuid4())
+                )
+            )
+        return False if response.status_code == 403 else True
 
     def json_request(self, url, **kwargs) -> Dict[str, Any]:
         return json.loads(
             self.string_request(url, **kwargs)
         )
 
-    @cache_with_timeout(1)  # enable caching to improve performance of multiple consecutive calls
     def string_request(self, url, **kwargs) -> str:
         return self.request('GET', url, **kwargs).content.decode()
 
@@ -98,15 +102,10 @@ class DockerRegistry(abc.ABC):
         r = requests.Request(method, url, **kwargs).prepare()
         r.prepare_auth((self._user, self._password))
         response = self._session.send(r, timeout=(10, 10))
-        # data = dump.dump_all(response)
-        # print(data.decode('utf-8'))
         # Clear cache on successfull deletion of a repo or tag
         if r.method == 'DELETE' and response.status_code in range(200,300):
             requests_cache.core.clear()
         return response
-
-    def delete_repo(self, repo):
-        raise NotImplementedError
 
     def delete_tag(self, repo, tag):
         raise NotImplementedError
@@ -180,24 +179,6 @@ class DockerV2Registry(DockerRegistry):
 
     version = 2
 
-    @property
-    @functools.lru_cache(maxsize=2)
-    def supports_tag_deletion(self):
-        try:
-            self.request(
-                'DELETE',
-                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
-                    url=self._url,
-                    repo='foo',
-                    tag='bar'
-                )
-            )
-        except urllib.error.HTTPError as e:
-            if e.code == 405:
-                return False
-            else:
-                return True
-
     def delete_tag(self, repo, tag):
         digest = self.request(
             'HEAD',
@@ -221,10 +202,6 @@ class DockerV2Registry(DockerRegistry):
         except urllib.error.HTTPError:
             raise
 
-    def delete_repo(self, repo):
-        pass
-
-    # @cache_with_timeout()
     @functools.lru_cache(maxsize=1000)
     def get_manifest(self, repo, tag):
         v1manifest = make_manifest(
