@@ -1,12 +1,15 @@
 import abc
 import base64
+import concurrent
 import functools
 import json
 import socket
+import time
 import urllib.error
 import urllib.request
 import urllib.parse
 import uuid
+from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Dict, Any
 
 import logging
@@ -14,8 +17,6 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import requests
-from requests_toolbelt.auth.handler import AuthHandler
-from requests_toolbelt.utils import dump
 import requests_cache
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -23,7 +24,6 @@ from requests.packages.urllib3.util.retry import Retry
 
 from docker_registry_frontend.manifest import make_manifest, \
     DockerRegistryCombinedManifest
-from docker_registry_frontend.cache import cache_with_timeout
 
 
 def nested_get(dictionary, *keys, default=None):
@@ -128,28 +128,55 @@ class DockerRegistry(abc.ABC):
     def get_number_of_layers(self, repo, tag):
         return len(self.get_layer_ids(repo, tag))
 
+    def get_number_of_layers_with_tag(self, repo, tag):
+        return tag, len(self.get_layer_ids(repo, tag))
+
+    def get_number_of_all_layers(self, repo):
+        result = {}
+        tags = self.get_tags(repo)
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_tag = (executor.submit(self.get_number_of_layers_with_tag, repo, tag) for tag in tags)
+            for future in concurrent.futures.as_completed(future_to_tag):
+                tag, count = future.result()
+                result[tag] = count
+        return result
+
     def get_layer_ids(self, repo, tag):
         raise NotImplementedError
 
+    @functools.lru_cache(maxsize=5000)
     def get_size_of_layers(self, repo, tag):
         return self.get_manifest(repo, tag).get_size()
 
-    def get_size_of_layer(self, repo, tag):
-        raise NotImplementedError
+    @functools.lru_cache(maxsize=1000)
+    def get_manifest(self, repo, tag):
+        v1manifest = make_manifest(
+            self.json_request(
+                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                    url=self._url,
+                    repo=repo,
+                    tag=tag
+                )
+            )
+        )
+        v2manifest = make_manifest(
+            self.json_request(
+                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                    url=self._url,
+                    repo=repo,
+                    tag=tag
+                ),
+                headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
+            )
+        )
+        return DockerRegistryCombinedManifest(v1manifest, v2manifest)
 
+    @functools.lru_cache(maxsize=50)
     def get_size_of_repo(self, repo):
         result = 0
 
         for tag in self.get_tags(repo):
             result += self.get_size_of_layers(repo, tag)
-
-        return result
-
-    def get_size_of_registry(self):
-        result = 0
-
-        for repo in self.get_repos():
-            result += self.get_size_of_repo(repo)
 
         return result
 
@@ -175,7 +202,6 @@ class DockerV2Registry(DockerRegistry):
     GET_ALL_REPOS_TEMPLATE = '{url}/v2/_catalog'
     GET_ALL_TAGS_TEMPLATE = '{url}/v2/{repo}/tags/list'
     GET_MANIFEST_TEMPLATE = '{url}/v2/{repo}/manifests/{tag}'
-    GET_LAYER_TEMPLATE = '{url}/v2/{repo}/blobs/{digest}'
 
     version = 2
 
@@ -202,28 +228,6 @@ class DockerV2Registry(DockerRegistry):
         except urllib.error.HTTPError:
             raise
 
-    @functools.lru_cache(maxsize=1000)
-    def get_manifest(self, repo, tag):
-        v1manifest = make_manifest(
-            self.json_request(
-                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
-                    url=self._url,
-                    repo=repo,
-                    tag=tag
-                )
-            )
-        )
-        v2manifest = make_manifest(
-            self.json_request(
-                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
-                    url=self._url,
-                    repo=repo,
-                    tag=tag
-                ),
-                headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
-            )
-        )
-        return DockerRegistryCombinedManifest(v1manifest, v2manifest)
 
     def is_online(self):
         try:
@@ -240,6 +244,7 @@ class DockerV2Registry(DockerRegistry):
             url=self._url)
         )['repositories']
 
+    @functools.lru_cache(maxsize=1000)
     def get_tags(self, repo):
         tags = self.json_request(DockerV2Registry.GET_ALL_TAGS_TEMPLATE.format(
             url=self._url,
@@ -250,13 +255,6 @@ class DockerV2Registry(DockerRegistry):
 
     def get_layer_ids(self, repo, tag):
         return self.get_manifest(repo, tag).get_layer_ids()
-
-    @cache_with_timeout()
-    def get_size_of_layer(self, repo, tag):
-        manifest =  self.get_manifest(repo, tag)
-        return 100
-        # TODO Fix
-        # return self.get_manifest(repo, layer_id)
 
     def get_created_date(self, repo, tag):
         return self.get_manifest(repo, tag).get_created_date()

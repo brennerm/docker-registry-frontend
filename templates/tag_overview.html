@@ -17,7 +17,7 @@
         {% for tag in registry.get_tags(repo) %}
         <tr>
             <td><a href="{{url_for('tag_detail', registry_name=registry.name, repo=(repo | urlencode), tag=tag)}}">{{tag}}</a></td>
-            <td>{{ registry.get_number_of_layers(repo, tag) }}</td>
+            <td>{{ registry.get_number_of_all_layers(repo)[tag] }}</td>
             <td>{{ registry.get_size_of_layers(repo, tag) | to_mb }} MB</td>
             <td>
                 <time class="timeago" datetime="{{ registry.get_created_date(repo, tag) }}">{{ registry.get_created_date(repo, tag) }}</time>
