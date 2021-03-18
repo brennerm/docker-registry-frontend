@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Build release image
       run: |
-        docker build -t neuromation/docker-registry-frontend:latest
+        docker build -t neuromation/docker-registry-frontend:latest .
     - name: Push release release image
       id: push
       run: |
