@@ -1,10 +1,12 @@
 import argparse
-import urllib.parse
+import asyncio
 import ssl
+import urllib.parse
 
 import flask
 
-from docker_registry_frontend.storage import DockerRegistryEnvStorage
+from docker_registry_frontend.config import create_config as create_config
+from docker_registry_frontend.storage import DockerRegistryJsonFileStorage
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -33,8 +35,10 @@ class DockerRegistryWeb:
         raise KeyError
 
 
+asyncio.get_event_loop().run_until_complete(create_config())
+
 app = flask.Flask(__name__)
-registry_web_storage = DockerRegistryEnvStorage()
+registry_web_storage = DockerRegistryJsonFileStorage("db.json")
 registry_web = DockerRegistryWeb(registry_web_storage)
 
 
@@ -61,13 +65,15 @@ def registry_overview():
 
 @app.route('/delete_tag', methods=['POST'])
 def delete_tag():
-    registry = registry_web.get_registry_by_name(flask.request.args.get('registry_name'))
+    registry = registry_web.get_registry_by_name(
+        flask.request.args.get('registry_name'))
     repo = flask.request.args.get('repo')
     tag = flask.request.args.get('tag')
 
     registry.delete_tag(repo, tag)
 
-    return flask.redirect(flask.url_for('tag_overview', registry_name=registry.name, repo=repo))
+    return flask.redirect(
+        flask.url_for('tag_overview', registry_name=registry.name, repo=repo))
 
 
 @app.route('/registry/<registry_name>')
@@ -106,11 +112,15 @@ def tag_detail(registry_name, repo, tag):
                                  tag=tag
                                  )
 
+
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('-d', '--debug', help='Run application in debug mode', action='store_true', default=False)
-    argparser.add_argument('-i', '--ip-address', help='IP address to bind application to', default='0.0.0.0')
-    argparser.add_argument('-p', '--port', help='Port to bind application to', default=8080, type=int)
+    argparser.add_argument('-d', '--debug', help='Run application in debug mode',
+                           action='store_true', default=False)
+    argparser.add_argument('-i', '--ip-address',
+                           help='IP address to bind application to', default='0.0.0.0')
+    argparser.add_argument('-p', '--port', help='Port to bind application to',
+                           default=8080, type=int)
     arguments = argparser.parse_args()
 
     app.run(

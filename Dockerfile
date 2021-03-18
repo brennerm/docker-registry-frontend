@@ -8,10 +8,12 @@ COPY docker_registry_frontend/ $SOURCE_DIR/docker_registry_frontend
 COPY static $SOURCE_DIR/static
 COPY templates $SOURCE_DIR/templates
 
-RUN apk update && \
-    apk add \
+RUN apk add --no-cache \
+      --virtual .build-deps \
       nodejs-npm \
-      git && \
-    pip install -r $SOURCE_DIR/requirements.txt && \
+      git \
+      build-base && \
+    pip install --no-cache-dir -r $SOURCE_DIR/requirements.txt && \
     npm install -g bower && \
-    bower --allow-root install
+    bower --allow-root install && \
+    apk del .build-deps
