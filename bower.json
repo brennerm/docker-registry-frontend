@@ -1,8 +1,9 @@
 {
   "name": "docker-registry-frontend",
-  "homepage": "https://github.com/brennerm/docker-registry-frontend",
+  "homepage": "https://github.com/neuro-inc/docker-registry-frontend",
   "authors": [
-    "brennerm <xamrennerb@gmail.com>"
+    "brennerm <xamrennerb@gmail.com>",
+    "Alexey Naiden <alexey.naiden@neu.ro>"
   ],
   "description": "Frontend for your Docker registries",
   "main": "",
@@ -22,6 +23,7 @@
     "clipboard": "^1.6.1",
     "datatables.net": "^1.10.15",
     "datatables.net-bs": "^2.1.1",
-    "jquery-timeago": "timeago#^1.5.4"
+    "jquery-timeago": "timeago#^1.5.4",
+    "jquery-confirm": "^2.7.0"
   }
 }

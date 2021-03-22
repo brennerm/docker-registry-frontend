@@ -1,18 +1,23 @@
 import abc
-import base64
+import concurrent
 import functools
 import json
 import socket
 import urllib.error
 import urllib.request
 import urllib.parse
+import uuid
+from concurrent.futures.thread import ThreadPoolExecutor
+from typing import Dict, Any
 
-from docker_registry_frontend.manifest import makeManifest
-from docker_registry_frontend.cache import cache_with_timeout
+import requests
+import requests_cache
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 
-def nested_get(dictionary, *keys, default=None):
-    return functools.reduce(lambda el, key: el.get(key) if el else default, keys, dictionary)
+from docker_registry_frontend.manifest import make_manifest, \
+    DockerRegistryCombinedManifest
 
 
 class DockerRegistry(abc.ABC):
@@ -23,6 +28,20 @@ class DockerRegistry(abc.ABC):
         self._url = url if url.startswith('http') else 'http://' + url
         self._user = user
         self._password = password
+        self._session = requests.Session()
+
+        # Cache responses for 5 minutes
+        requests_cache.install_cache('requests', expire_after=300, include_get_headers=True)
+
+        # Add retries
+        retry_strategy = Retry(
+            total=3,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "OPTIONS"]
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self._session.mount("https://", adapter)
+        self._session.mount("http://", adapter)
 
     def __key(self):
         return self._url
@@ -49,36 +68,34 @@ class DockerRegistry(abc.ABC):
     def password(self):
         return self._password
 
-    @property
-    def supports_repo_deletion(self):
-        return False
+    @functools.lru_cache(maxsize=100)
+    def supports_tag_deletion(self, repo):
+        response = self.request(
+                'DELETE',
+                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                    url=self._url,
+                    repo=repo,
+                    tag=str(uuid.uuid4())
+                )
+            )
+        return False if response.status_code == 403 else True
 
-    @property
-    def supports_tag_deletion(self):
-        return False
-
-    def json_request(self, *args, **kwargs):
+    def json_request(self, url, **kwargs) -> Dict[str, Any]:
         return json.loads(
-            self.string_request(*args, **kwargs)
+            self.string_request(url, **kwargs)
         )
 
-    @cache_with_timeout(1)  # enable caching to improve performance of multiple consecutive calls
-    def string_request(self, *args, **kwargs):
-        return self.request(*args, **kwargs).read().decode()
+    def string_request(self, url, **kwargs) -> str:
+        return self.request('GET', url, **kwargs).content.decode()
 
-    def request(self, *args, **kwargs):
-        request = urllib.request.Request(*args, **kwargs)
-
-        if self._user and self._password:
-            base64string = base64.b64encode(
-                f'{self._user}:{self._password}'.encode()
-            ).decode('ascii')
-            request.add_header("Authorization", f"Basic {base64string}")
-
-        return urllib.request.urlopen(request, timeout=3)
-
-    def delete_repo(self, repo):
-        raise NotImplementedError
+    def request(self, method, url, **kwargs) -> requests.Response:
+        r = requests.Request(method, url, **kwargs).prepare()
+        r.prepare_auth((self._user, self._password))
+        response = self._session.send(r, timeout=(10, 10))
+        # Clear cache on successful deletion of a repo or tag
+        if r.method == 'DELETE' and response.status_code in range(200, 300):
+            requests_cache.core.clear()
+        return response
 
     def delete_tag(self, repo, tag):
         raise NotImplementedError
@@ -101,214 +118,29 @@ class DockerRegistry(abc.ABC):
     def get_number_of_layers(self, repo, tag):
         return len(self.get_layer_ids(repo, tag))
 
+    def get_number_of_layers_with_tag(self, repo, tag):
+        return tag, len(self.get_layer_ids(repo, tag))
+
+    def get_number_of_all_layers(self, repo):
+        result = {}
+        tags = self.get_tags(repo)
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_tag = (executor.submit(self.get_number_of_layers_with_tag, repo, tag) for tag in tags)
+            for future in concurrent.futures.as_completed(future_to_tag):
+                tag, count = future.result()
+                result[tag] = count
+        return result
+
     def get_layer_ids(self, repo, tag):
         raise NotImplementedError
 
+    @functools.lru_cache(maxsize=5000)
     def get_size_of_layers(self, repo, tag):
-        result = 0
+        return self.get_manifest(repo, tag).get_size()
 
-        for image_id in self.get_layer_ids(repo, tag):
-            result += self.get_size_of_layer(repo, image_id)
-
-        return result
-
-    def get_size_of_layer(self, repo, tag):
-        raise NotImplementedError
-
-    def get_size_of_repo(self, repo):
-        result = 0
-
-        for tag in self.get_tags(repo):
-            result += self.get_size_of_layers(repo, tag)
-
-        return result
-
-    def get_size_of_registry(self):
-        result = 0
-
-        for repo in self.get_repos():
-            result += self.get_size_of_repo(repo)
-
-        return result
-
-    def get_created_date(self, repo, tag):
-        raise NotImplementedError
-
-    def get_entrypoint(self, repo, tag):
-        raise NotImplementedError
-
-    def get_docker_version(self, repo, tag):
-        raise NotImplementedError
-
-    def get_exposed_ports(self, repo, tag):
-        raise NotImplementedError
-
-    def get_volumes(self, repo, tag):
-        raise NotImplementedError
-
-
-class DockerV1Registry(DockerRegistry):
-    ONLINE_TEMPLATE = '{url}/v1/_ping'
-    GET_ALL_REPOS_TEMPLATE = '{url}/v1/search'
-    GET_ALL_TAGS_TEMPLATE = '{url}/v1/repositories/{repo}/tags'
-    DELETE_REPO_TEMPLATE = '{url}/v1/repositories/{repo}/'
-    DELETE_TAG_TEMPLATE = '{url}/v1/repositories/{repo}/tags/{tag}'
-    GET_IMAGE_ID_TEMPLATE = GET_ALL_TAGS_TEMPLATE + '/{tag}'
-    GET_IMAGE_TEMPLATE = '{url}/v1/images/{image_id}/json'
-    GET_IMAGE_ANCESTORS = '{url}/v1/images/{image_id}/ancestry'
-    GET_LAYER_TEMPLATE = '{url}/v1/images/{image_id}/layer'
-
-    version = 1
-
-    def __get_image_id(self, repo, tag):
-        return self.string_request(DockerV1Registry.GET_IMAGE_ID_TEMPLATE.format(
-            url=self._url,
-            repo=repo,
-            tag=tag
-        )).replace('"', '')
-
-    def __get_image(self, repo, tag):
-        image_id = self.__get_image_id(repo, tag)
-
-        return self.json_request(DockerV1Registry.GET_IMAGE_TEMPLATE.format(
-            url=self._url,
-            image_id=image_id
-        ))
-
-    @property
-    def supports_repo_deletion(self):
-        return True
-
-    @property
-    def supports_tag_deletion(self):
-        return True
-
-    def delete_repo(self, repo):
-        self.request(
-            DockerV1Registry.DELETE_REPO_TEMPLATE.format(
-                url=self._url,
-                repo=repo,
-            ),
-            method='DELETE'
-        )
-
-    def delete_tag(self, repo, tag):
-        self.request(
-            DockerV1Registry.DELETE_TAG_TEMPLATE.format(
-                url=self._url,
-                repo=repo,
-                tag=tag
-            ),
-            method='DELETE'
-        )
-
-    def get_size_of_layer(self, repo, image_id):
-        try:
-            return int(self.request(DockerV1Registry.GET_LAYER_TEMPLATE.format(
-                url=self._url,
-                image_id=image_id
-            )).info()['Content-Length'])
-
-        except urllib.error.HTTPError:  # required to support Windows images, see https://github.com/brennerm/docker-registry-frontend/issues/5
-            return 0
-
-    def get_tags(self, repo):
-        return self.json_request(DockerV1Registry.GET_ALL_TAGS_TEMPLATE.format(
-            url=self._url,
-            repo=repo
-        )).keys()
-
-    def get_exposed_ports(self, repo, tag):
-        return nested_get(self.__get_image(repo, tag), 'container_config', 'ExposedPorts')
-
-    def get_repos(self):
-        return [result['name'] for result in self.json_request(DockerV1Registry.GET_ALL_REPOS_TEMPLATE.format(
-            url=self._url)
-        )['results']]
-
-    def get_docker_version(self, repo, tag):
-        return self.__get_image(repo, tag).get('docker_version')
-
-    def get_layer_ids(self, repo, tag):
-        image_id = self.__get_image_id(repo, tag)
-
-        return self.json_request(DockerV1Registry.GET_IMAGE_ANCESTORS.format(
-            url=self._url,
-            image_id=image_id
-        ))
-
-    def is_online(self):
-        try:
-            resp = self.request(DockerV1Registry.ONLINE_TEMPLATE.format(
-                    url=self._url
-            ))
-        except (urllib.error.URLError, socket.timeout):
-            return False
-
-        return True if resp.getcode() == 200 else False
-
-    def get_volumes(self, repo, tag):
-        return nested_get(self.__get_image(repo, tag), 'container_config', 'Volumes')
-
-    def get_entrypoint(self, repo, tag):
-        return nested_get(self.__get_image(repo, tag), 'container_config', 'Entrypoint')
-
-    def get_created_date(self, repo, tag):
-        return self.__get_image(repo, tag).get('created')
-
-
-class DockerV2Registry(DockerRegistry):
-    API_BASE = '{url}/v2/'
-    GET_ALL_REPOS_TEMPLATE = '{url}/v2/_catalog'
-    GET_ALL_TAGS_TEMPLATE = '{url}/v2/{repo}/tags/list'
-    GET_MANIFEST_TEMPLATE = '{url}/v2/{repo}/manifests/{tag}'
-    GET_LAYER_TEMPLATE = '{url}/v2/{repo}/blobs/{digest}'
-
-    version = 2
-
-    @property
-    def supports_tag_deletion(self):
-        try:
-            self.request(
-                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
-                    url=self._url,
-                    repo='foo',
-                    tag='bar'
-                ),
-                method='DELETE'
-            )
-        except urllib.error.HTTPError as e:
-            if e.code == 405:
-                return False
-            else:
-                return True
-
-    def delete_tag(self, repo, tag):
-        digest = self.request(
-            DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
-                url=self._url,
-                repo=repo,
-                tag=tag
-            ),
-            method='HEAD',
-            headers={'Accept': 'application/vnd.docker.distribution.manifest.v2+json'}
-        ).info()['Docker-Content-Digest']
-
-        try:
-            self.request(
-                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
-                    url=self._url,
-                    repo=repo,
-                    tag=digest
-                ),
-                method='DELETE'
-            )
-        except urllib.error.HTTPError:
-            raise
-
-    @cache_with_timeout()
+    @functools.lru_cache(maxsize=1000)
     def get_manifest(self, repo, tag):
-        return makeManifest(
+        v1manifest = make_manifest(
             self.json_request(
                 DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
                     url=self._url,
@@ -317,22 +149,92 @@ class DockerV2Registry(DockerRegistry):
                 )
             )
         )
+        v2manifest = make_manifest(
+            self.json_request(
+                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                    url=self._url,
+                    repo=repo,
+                    tag=tag
+                ),
+                headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
+            )
+        )
+        return DockerRegistryCombinedManifest(v1manifest, v2manifest)
+
+    @functools.lru_cache(maxsize=50)
+    def get_size_of_repo(self, repo):
+        result = 0
+
+        for tag in self.get_tags(repo):
+            result += self.get_size_of_layers(repo, tag)
+
+        return result
+
+    def get_created_date(self, repo, tag):
+        raise NotImplementedError
+
+    def get_entrypoint(self, repo, tag):
+        raise NotImplementedError
+
+    def get_docker_version(self, repo, tag):
+        raise NotImplementedError
+
+    def get_exposed_ports(self, repo, tag):
+        raise NotImplementedError
+
+    def get_volumes(self, repo, tag):
+        raise NotImplementedError
+
+
+class DockerV2Registry(DockerRegistry):
+
+    API_BASE = '{url}/v2/'
+    GET_ALL_REPOS_TEMPLATE = '{url}/v2/_catalog'
+    GET_ALL_TAGS_TEMPLATE = '{url}/v2/{repo}/tags/list'
+    GET_MANIFEST_TEMPLATE = '{url}/v2/{repo}/manifests/{tag}'
+
+    version = 2
+
+    def delete_tag(self, repo, tag):
+        digest = self.request(
+            'HEAD',
+            DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                url=self._url,
+                repo=repo,
+                tag=tag
+            ),
+            headers={'Accept': 'application/vnd.docker.distribution.manifest.v2+json'}
+        ).headers['Docker-Content-Digest']
+
+        try:
+            self.request(
+                'DELETE',
+                DockerV2Registry.GET_MANIFEST_TEMPLATE.format(
+                    url=self._url,
+                    repo=repo,
+                    tag=digest
+                )
+            )
+        except urllib.error.HTTPError:
+            raise
+
 
     def is_online(self):
         try:
-            resp = self.request(DockerV2Registry.API_BASE.format(
+            resp = self.request('GET', DockerV2Registry.API_BASE.format(
                     url=self._url
             ))
         except (urllib.error.URLError, socket.timeout):
             return False
 
-        return True if resp.getcode() == 200 else False
+        return True if resp.status_code == 200 else False
 
     def get_repos(self):
         return self.json_request(DockerV2Registry.GET_ALL_REPOS_TEMPLATE.format(
             url=self._url)
         )['repositories']
 
+    @functools.lru_cache(maxsize=1000)
     def get_tags(self, repo):
         tags = self.json_request(DockerV2Registry.GET_ALL_TAGS_TEMPLATE.format(
             url=self._url,
@@ -343,21 +245,6 @@ class DockerV2Registry(DockerRegistry):
 
     def get_layer_ids(self, repo, tag):
         return self.get_manifest(repo, tag).get_layer_ids()
-
-    @cache_with_timeout()
-    def get_size_of_layer(self, repo, layer_id):
-        try:
-            return int(self.request(
-                    DockerV2Registry.GET_LAYER_TEMPLATE.format(
-                        url=self._url,
-                        repo=repo,
-                        digest=layer_id
-                    ),
-                    method='HEAD'
-                ).info()['Content-Length'])
-
-        except urllib.error.HTTPError:  # required to support Windows images, see https://github.com/brennerm/docker-registry-frontend/issues/5
-            return 0
 
     def get_created_date(self, repo, tag):
         return self.get_manifest(repo, tag).get_created_date()
@@ -376,12 +263,4 @@ class DockerV2Registry(DockerRegistry):
 
 
 def make_registry(*args, **kwargs):
-    v2registry = DockerV2Registry(*args, **kwargs)
-    v1registry = DockerV1Registry(*args, **kwargs)
-
-    if v2registry.is_online():
-        return v2registry
-    elif v1registry.is_online():
-        return v1registry
-    else:
-        return v2registry
+    return DockerV2Registry(*args, **kwargs)

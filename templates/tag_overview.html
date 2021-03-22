@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}Tags{% endblock %}
-{% block header %}{% include 'breadcrumbs.html' %}{% endblock %}
+{% block header %} {% include 'breadcrumbs.html' %} {% endblock %}
 {% block content %}
 {% if registry.is_online() %}
 <table id="tag_table" class="table table-striped">
@@ -17,15 +17,15 @@
         {% for tag in registry.get_tags(repo) %}
         <tr>
             <td><a href="{{url_for('tag_detail', registry_name=registry.name, repo=(repo | urlencode), tag=tag)}}">{{tag}}</a></td>
-            <td>{{ registry.get_number_of_layers(repo, tag) }}</td>
+            <td>{{ registry.get_number_of_all_layers(repo)[tag] }}</td>
             <td>{{ registry.get_size_of_layers(repo, tag) | to_mb }} MB</td>
             <td>
                 <time class="timeago" datetime="{{ registry.get_created_date(repo, tag) }}">{{ registry.get_created_date(repo, tag) }}</time>
             </td>
-            {% if registry.supports_tag_deletion %}
+            {% if registry.supports_tag_deletion(repo) %}
             <td>
                 <form action="{{url_for('delete_tag', registry_name=registry.name, repo=(repo | urlencode), tag=tag)}}" method="post">
-                    <button type="submit" class="btn btn-danger btn-xs">
+                    <button type="submit" class="btn btn-danger btn-xs confirm">
                         <span class="glyphicon glyphicon-trash"></span>
                     </button>
                 </form>

@@ -10,10 +10,12 @@
         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='styles/custom.css') }}">
 
         <script src= "{{ url_for('static', filename='bower_components/jquery/dist/jquery.min.js') }}"></script>
+        <script src= "{{ url_for('static', filename='bower_components/bootstrap/dist/js/bootstrap.js') }}"></script>
         <script src= "{{ url_for('static', filename='bower_components/datatables.net/js/jquery.dataTables.min.js') }}"></script>
         <script src= "{{ url_for('static', filename='bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js') }}"></script>
         <script src= "{{ url_for('static', filename='bower_components/clipboard/dist/clipboard.min.js') }}"></script>
         <script src= "{{ url_for('static', filename='bower_components/jquery-timeago/jquery.timeago.js') }}"></script>
+        <script src= "{{ url_for('static', filename='bower_components/jquery-confirm/jquery.confirm.js') }}"></script>
         <script src= "{{ url_for('static', filename='bower_components/bootstrap-validator/dist/validator.min.js') }}"></script>
     </head>
     <body>
@@ -22,7 +24,7 @@
         <footer id="footer" class="footer text-center">
             <div class="container">
                 {% block footer %}
-                Built with <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> by <a href="https://github.com/brennerm">brennerm</a>
+                Built with <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> by <a href="https://github.com/brennerm">brennerm</a> and modified with more <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> by <a href="https://neu.ro">Neu.ro</a>
                 /
                 <a href="https://github.com/brennerm/docker-registry-frontend">Fork me!</a>
                 {% endblock %}
@@ -31,5 +33,8 @@
     </body>
     <script>
     clipboard = new Clipboard('.btn');
+    $(".confirm").confirm({
+        submitForm: true
+    });
     </script>
 </html>

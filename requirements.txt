@@ -1,1 +1,5 @@
-flask
+Flask==1.1.2
+requests==2.25.1
+requests-cache==0.5.2
+requests-toolbelt==0.9.1
+neuro-sdk==21.3.3

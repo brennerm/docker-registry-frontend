@@ -1,6 +1,0 @@
-{
-  "storage": {
-    "driver": "json",
-    "file_path": "db.json"
-  }
-}
