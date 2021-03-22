@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master, an/neuro]
+    branches: [master]
 
 jobs:
   dockerhub_deploy:
