@@ -17,3 +17,5 @@ RUN apk add --no-cache \
     npm install -g bower && \
     bower --allow-root install && \
     apk del .build-deps
+
+COPY ./uwsgi.ini $SOURCE_DIR/uwsgi.ini
