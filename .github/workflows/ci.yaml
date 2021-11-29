@@ -8,18 +8,20 @@ jobs:
   dockerhub_deploy:
     name: Release image
     runs-on: ubuntu-latest
-    env:
-      DOCKER_SERVER: docker.io
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
     - name: Checkout commit
       uses: actions/checkout@v2
     - name: Build release image
       run: |
-        docker build -t neuromation/docker-registry-frontend:latest .
+        docker build -t ghcr.io/neuro-inc/docker-registry-frontend:latest .
+    - name: Login to ghcr.io
+      uses: docker/login-action@v1.10.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Push release release image
       id: push
       run: |
-        echo $DOCKER_PASSWORD | docker login $DOCKER_SERVER --username $DOCKER_USERNAME --password-stdin
-        docker push neuromation/docker-registry-frontend:latest
+        docker push ghcr.io/neuro-inc/docker-registry-frontend:latest
