@@ -2,6 +2,7 @@ import abc
 import concurrent
 import functools
 import json
+import re
 import socket
 import urllib.error
 import urllib.request
@@ -90,6 +91,7 @@ class DockerRegistry(abc.ABC):
 
     def request(self, method, url, **kwargs) -> requests.Response:
         r = requests.Request(method, url, **kwargs).prepare()
+        print(method, url)
         r.prepare_auth((self._user, self._password))
         response = self._session.send(r, timeout=(10, 10))
         # Clear cache on successful deletion of a repo or tag
@@ -192,7 +194,7 @@ class DockerV2Registry(DockerRegistry):
     GET_ALL_REPOS_TEMPLATE = '{url}/v2/_catalog'
     GET_ALL_TAGS_TEMPLATE = '{url}/v2/{repo}/tags/list'
     GET_MANIFEST_TEMPLATE = '{url}/v2/{repo}/manifests/{tag}'
-
+    LINK_HEADER_PATTERN = r"(?<=<)(.*)(?=>)"
     version = 2
 
     def delete_tag(self, repo, tag):
@@ -229,10 +231,22 @@ class DockerV2Registry(DockerRegistry):
 
         return True if resp.status_code == 200 else False
 
-    def get_repos(self):
-        return self.json_request(DockerV2Registry.GET_ALL_REPOS_TEMPLATE.format(
+    def get_repos(self, url_template: str = GET_ALL_REPOS_TEMPLATE):
+        print('Getting repos from url:', url_template)
+
+        # TODO: replace recursion with a loop
+        response = self.request('GET', url_template.format(
             url=self._url)
-        )['repositories']
+        )
+
+        repos = json.loads(response.content.decode())['repositories']
+        print("Headers:", response.headers)
+        if 'Link' in response.headers:
+            next_repos_link = re.search(DockerV2Registry.LINK_HEADER_PATTERN, 
+                                        response.headers['Link'])[0]
+            repos += self.get_repos(next_repos_link)
+
+        return repos
 
     @functools.lru_cache(maxsize=1000)
     def get_tags(self, repo):

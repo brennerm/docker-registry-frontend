@@ -4,9 +4,6 @@ ENV SOURCE_DIR /app
 WORKDIR $SOURCE_DIR
 
 COPY Dockerfile LICENSE requirements.txt bower.json .bowerrc main.py $SOURCE_DIR/
-COPY docker_registry_frontend/ $SOURCE_DIR/docker_registry_frontend
-COPY static $SOURCE_DIR/static
-COPY templates $SOURCE_DIR/templates
 
 RUN apk add --no-cache \
       --virtual .build-deps \
@@ -17,5 +14,9 @@ RUN apk add --no-cache \
     npm install -g bower && \
     bower --allow-root install && \
     apk del .build-deps
+
+COPY docker_registry_frontend/ $SOURCE_DIR/docker_registry_frontend
+COPY static $SOURCE_DIR/static
+COPY templates $SOURCE_DIR/templates
 
 COPY ./uwsgi.ini $SOURCE_DIR/uwsgi.ini
