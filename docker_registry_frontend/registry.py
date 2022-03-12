@@ -91,7 +91,6 @@ class DockerRegistry(abc.ABC):
 
     def request(self, method, url, **kwargs) -> requests.Response:
         r = requests.Request(method, url, **kwargs).prepare()
-        print(method, url)
         r.prepare_auth((self._user, self._password))
         response = self._session.send(r, timeout=(10, 10))
         # Clear cache on successful deletion of a repo or tag
@@ -232,15 +231,12 @@ class DockerV2Registry(DockerRegistry):
         return True if resp.status_code == 200 else False
 
     def get_repos(self, url_template: str = GET_ALL_REPOS_TEMPLATE):
-        print('Getting repos from url:', url_template)
-
         # TODO: replace recursion with a loop
         response = self.request('GET', url_template.format(
             url=self._url)
         )
 
         repos = json.loads(response.content.decode())['repositories']
-        print("Headers:", response.headers)
         if 'Link' in response.headers:
             next_repos_link = re.search(DockerV2Registry.LINK_HEADER_PATTERN, 
                                         response.headers['Link'])[0]
